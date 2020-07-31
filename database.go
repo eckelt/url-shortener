@@ -20,21 +20,21 @@ func (s sqlite) Save(url string, code string) (int64, string, error) {
 	db, err := sql.Open("sqlite3", s.Path)
 	tx, err := db.Begin()
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	stmt, err := tx.Prepare("insert into urls(url, code) values(?, ?)")
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	defer stmt.Close()
 	result, err := stmt.Exec(url, code)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, nil
+		return 0, nil, nil
 	}
 	tx.Commit()
 	//result
