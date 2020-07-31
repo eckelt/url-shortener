@@ -60,7 +60,7 @@ func encodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		return
 	}
 
-	resp := map[string]string{"url": baseURL + code, "code": code, "error": ""}
+	resp := map[string]string{"url": baseURL + code, "code": code, "id": id, "error": ""}
 	jsonData, _ := json.Marshal(resp)
 	response.Write(jsonData)
 
