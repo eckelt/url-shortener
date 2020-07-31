@@ -14,7 +14,7 @@ import (
 
 const base string = "0123456789abcdfghjkmnpqrstvwxyzABCDFGHJKLMNPQRSTVWXYZ"
 
-func GenerateCode(n int) string {
+func generateCode(n int) string {
     const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     b := make([]byte, n)
     for i := range b {
@@ -24,7 +24,7 @@ func GenerateCode(n int) string {
 }
 
 func decodeHandler(response http.ResponseWriter, request *http.Request, db Database) {
-	code := decode(mux.Vars(request)["code"])
+	code := mux.Vars(request)["code"]
 	url, err := db.Get(code)
 	if err != nil {
 		http.Error(response, `{"error": "No such URL"}`, http.StatusNotFound)
