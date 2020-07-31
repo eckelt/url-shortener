@@ -6,11 +6,10 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
-	"math"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
-	"strings"
 )
 
 const base string = "0123456789abcdfghjkmnpqrstvwxyzABCDFGHJKLMNPQRSTVWXYZ"
