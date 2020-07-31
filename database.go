@@ -8,26 +8,26 @@ import (
 
 // Database interface
 type Database interface {
-	Get(id int) (string, error)
-	Save(url string) (int64, error)
+	Get(code string) (string, error)
+	Save(url string, code string) (int64, string, error)
 }
 
 type sqlite struct {
 	Path string
 }
 
-func (s sqlite) Save(url string) (int64, error) {
+func (s sqlite) Save(url string, code string) (int64, string, error) {
 	db, err := sql.Open("sqlite3", s.Path)
 	tx, err := db.Begin()
 	if err != nil {
 		return 0, err
 	}
-	stmt, err := tx.Prepare("insert into urls(url) values(?)")
+	stmt, err := tx.Prepare("insert into urls(url, code) values(?, ?)")
 	if err != nil {
 		return 0, err
 	}
 	defer stmt.Close()
-	result, err := stmt.Exec(url)
+	result, err := stmt.Exec(url, code)
 	if err != nil {
 		return 0, err
 	}
@@ -38,12 +38,12 @@ func (s sqlite) Save(url string) (int64, error) {
 	}
 	tx.Commit()
 	//result
-	return id, nil
+	return id, code, nil
 }
 
-func (s sqlite) Get(id int) (string, error) {
+func (s sqlite) Get(code string) (string, error) {
 	db, err := sql.Open("sqlite3", s.Path)
-	stmt, err := db.Prepare("select url from urls where id = ?")
+	stmt, err := db.Prepare("select url from urls where code = ?")
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +63,7 @@ func (s sqlite) Init() {
 	}
 	defer c.Close()
 
-	sqlStmt := `create table if not exists urls (id integer not null primary key, url text);`
+	sqlStmt := `create table if not exists urls (id integer not null primary key, code text, url text);`
 	_, err = c.Exec(sqlStmt)
 	if err != nil {
 		log.Fatal(err)
