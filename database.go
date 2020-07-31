@@ -49,7 +49,7 @@ func (s sqlite) Get(code string) (string, error) {
 	}
 	defer stmt.Close()
 	var url string
-	err = stmt.QueryRow(id).Scan(&url)
+	err = stmt.QueryRow(code).Scan(&url)
 	if err != nil {
 		return "", err
 	}
