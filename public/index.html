@@ -8,14 +8,13 @@
 
     app.controller('createCtrl', function($scope, $http) {
 
-      $scope.save = function(url) {
+      $scope.save = function(url, code) {
         if (url === undefined) { return; }
 
-        $http.post('/save', {url: url})
+        $http.post('/save', {url: url, code: code})
             .success(function(data, status, headers, config) {
               $scope.error = null;
-              base_url = window.location.protocol+"//"+window.location.host+"/"+data.id
-              $scope.short_url = base_url;
+              $scope.short_url = data.url;
             })
             .error(function(data, status, headers, config) {
               $scope.short_url = null;
@@ -26,8 +25,8 @@
   </script>
   </head>
   <body ng-controller="createCtrl">
-    URL <input ng-model="url">
-     <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="save(url)">Make URL shorter</button>
+    URL <input ng-model="url">code <input ng-model="code">
+     <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="save(url, code)">Make URL shorter</button>
   </body>
   <br/>
   {{short_url}}
