@@ -50,17 +50,18 @@ func encodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		return
 	}
 
+	var requestedCode = data.code
 	if len(data.code)<2 {
-		data.code = generateCode(4)
+		requestedCode = generateCode(4)
 	}
 
-	_, code, err := db.Save(data.URL, data.code)
+	_, code, err := db.Save(data.URL, requestedCode)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	resp := map[string]string{"url": baseURL + code, "code": code, "error": ""}
+	resp := map[string]string{"url": baseURL + code, "code": code, "requested-code": data.code, "error": ""}
 	jsonData, _ := json.Marshal(resp)
 	response.Write(jsonData)
 
