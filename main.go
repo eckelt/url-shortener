@@ -36,8 +36,8 @@ func decodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 func encodeHandler(response http.ResponseWriter, request *http.Request, db Database, baseURL string) {
 	decoder := json.NewDecoder(request.Body)
 	var data struct {
-		code string `json:"code"`
 		URL string `json:"url"`
+		Code string `json:"code"`
 	}
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -50,18 +50,17 @@ func encodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		return
 	}
 
-	var requestedCode = data.code
-	if len(data.code)<2 {
-		requestedCode = generateCode(4)
+	if len(data.Code)<2 {
+		data.Code = generateCode(4)
 	}
 
-	_, code, err := db.Save(data.URL, requestedCode)
+	_, code, err := db.Save(data.URL, data.Code)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	resp := map[string]string{"url": baseURL + code, "code": code, "requested-code": data.code, "error": ""}
+	resp := map[string]string{"url": baseURL + code, "code": code, "requested-code": data.Code, "error": ""}
 	jsonData, _ := json.Marshal(resp)
 	response.Write(jsonData)
 
