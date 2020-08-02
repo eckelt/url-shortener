@@ -36,8 +36,8 @@ func decodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 func encodeHandler(response http.ResponseWriter, request *http.Request, db Database, baseURL string) {
 	decoder := json.NewDecoder(request.Body)
 	var data struct {
-		URL string `json:"url"`
 		code string `json:"code"`
+		URL string `json:"url"`
 	}
 	err := decoder.Decode(&data)
 	if err != nil {
