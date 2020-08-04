@@ -30,7 +30,7 @@ func decodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		http.Error(response, `{"error": "No such URL"}`, http.StatusNotFound)
 		return
 	}
-	http.Redirect(response, request, url, 308)
+	http.Redirect(response, request, url, http.StatusPermanentRedirect)
 }
 
 func encodeHandler(response http.ResponseWriter, request *http.Request, db Database, baseURL string) {
