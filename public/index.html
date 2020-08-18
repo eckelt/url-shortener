@@ -1,34 +1,87 @@
-<!doctype html>
-<html ng-app="url-shortener">
-  <head>
-    <title>URL shortener</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
-    <script>
-    var app = angular.module('url-shortener', []);
+<!DOCTYPE html>
+<html lang="de">
 
-    app.controller('createCtrl', function($scope, $http) {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css" rel="stylesheet">
+    <title>URL-Shortener</title>
+</head>
+<style>
+    body {
+        font-family: "Alegreya Sans", sans-serif;
+        background-position: center;
+        background-image: url("https://kurz.ecke.lt/Pattern");
+        background-size: cover;
+        height: 100vh;
+    }
 
-      $scope.save = function(url, code) {
-        if (url === undefined) { return; }
+    .content {
+        margin: 20vh auto;
+        width: 400px;
+    }
 
-        $http.post('/save', {url: url, code: code})
-            .success(function(data, status, headers, config) {
-              $scope.error = null;
-              $scope.short_url = data.url;
-            })
-            .error(function(data, status, headers, config) {
-              $scope.short_url = null;
-              $scope.error = data.error;
-            });
-      }
-    });
-  </script>
-  </head>
-  <body ng-controller="createCtrl">
-    URL <input ng-model="url">code <input ng-model="code">
-     <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="save(url, code)">Make URL shorter</button>
-  </body>
-  <br/>
-  {{short_url}}
-  {{error}}
+    @media only screen and (max-width: 600px) {
+        .content {
+            width: 85vw;
+        }
+    }
+</style>
+<script>
+    const url = "https://kurz.ecke.lt/save"
+
+    function save() {
+        let data = {
+            url: document.getElementById('txtUrl').value,
+            code: document.getElementById('txtCode').value
+        };
+
+        fetch("https://kurz.ecke.lt/save", {
+            method: "POST",
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('resultContainer').style.display='block';
+            document.getElementById('result').innerHTML  = data.url;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+
+    function copy() {
+        navigator.clipboard.writeText(document.getElementById("result").innerHTML)
+        .then(() => {
+            console.log('Async: Copying to clipboard was successful!');
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+</script>
+
+<body>
+    <div class="content">
+        <figure class="accent" style="--mb:1.5rem; --w:100%">
+            <figcaption>
+                <label>URL
+                    <input id="txtUrl" name="url" type="text"
+                        placeholder="https://example.com/very/long?stuff=that&nobody=wants&to=read">
+                </label>
+                <label>Code
+                    <input id="txtCode" name="code" type="text" placeholder="(optional)">
+                </label>
+                <button class="red" style="--w:100%" aria-label="Kürzen" onclick="save()">Kürzen</button>
+            </figcaption>
+        </figure>
+        <figure id="resultContainer" class="accent" style="--mb:1.5rem; --w:100%; display: none;">
+            <figcaption>
+                <span id="result"></span>
+                <button class="red" style="--w:100%" aria-label="Kürzen" onclick="copy()">In die Zwischenablage</button>
+            </figcaption>
+        </figure>
+    </div>
+</body>
+
 </html>
