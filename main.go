@@ -10,15 +10,17 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 )
 
 const base string = "0123456789abcdfghjkmnpqrstvwxyzABCDFGHJKLMNPQRSTVWXYZ"
 
 func generateCode(n int) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
     const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     b := make([]byte, n)
     for i := range b {
-        b[i] = letters[rand.Intn(len(letters))]
+        b[i] = letters[r.Intn(len(letters))]
     }
     return string(b)
 }
@@ -60,7 +62,7 @@ func encodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		return
 	}
 
-	resp := map[string]string{"url": baseURL + code, "code": code, "requested-code": data.Code, "error": ""}
+	resp := map[string]string{"url": baseURL + code, "code": code, "error": ""}
 	jsonData, _ := json.Marshal(resp)
 	response.Write(jsonData)
 
