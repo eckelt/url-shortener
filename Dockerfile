@@ -1,13 +1,30 @@
-FROM iron/go
+############################
+# STEP 1 build executable binary
+############################
+FROM golang:alpine AS builder
 
-WORKDIR /app
+# Install git.
+# Git is required for fetching the dependencies.
+RUN apk update && apk add --no-cache git
+WORKDIR $GOPATH/src/mypackage/myapp/
+COPY . .
 
-ENV SRC_DIR=/go/src/github.com/NilsEckelt/url-shortener/
-# Add the source code:
-ADD . $SRC_DIR
-# Build it:
-RUN cd $SRC_DIR; go build -o myapp; cp myapp /app/
+# Fetch dependencies.
+# Using go get.
+RUN go get -d -v
 
-ENTRYPOINT ["./myapp"]
+# Build the binary.
+RUN go build -o /go/bin/url-shortener
+
+############################
+# STEP 2 build a small image
+############################
+FROM scratch
+
+# Copy our static executable.
+COPY --from=builder /go/bin/url-shortener /go/bin/url-shortener
+
+# Run the hello binary.
+ENTRYPOINT ["/go/bin/url-shortener"]
 
 EXPOSE 1337
