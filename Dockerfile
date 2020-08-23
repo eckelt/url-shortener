@@ -15,12 +15,13 @@ RUN go build -o /go/bin/url-shortener
 ############################
 # STEP 2 build a small image
 ############################
-FROM scratch
+FROM alpine:latest  
 
-# Copy our static executable.
-COPY --from=builder /go/bin/url-shortener /app/url-shortener
+RUN apk --no-cache add ca-certificates
 
-# Run the hello binary.
-ENTRYPOINT ["/app/url-shortener"]
+WORKDIR /root/
+
+COPY --from=builder /go/bin/url-shortener .
+CMD ["./url-shortener"] 
 
 EXPOSE 1337
