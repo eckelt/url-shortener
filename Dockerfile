@@ -3,11 +3,10 @@
 ############################
 FROM golang AS builder
 
-WORKDIR $GOPATH/
+WORKDIR $GOPATH/src/
 COPY . .
 
 # Fetch dependencies.
-# Using go get.
 RUN go get -d -v
 
 # Build the binary.
@@ -19,9 +18,9 @@ RUN go build -o /go/bin/url-shortener
 FROM scratch
 
 # Copy our static executable.
-COPY --from=builder /go/bin/url-shortener /go/bin/url-shortener
+COPY --from=builder /go/bin/url-shortener /app/url-shortener
 
 # Run the hello binary.
-ENTRYPOINT ["/go/bin/url-shortener"]
+ENTRYPOINT ["/app/url-shortener"]
 
 EXPOSE 1337
