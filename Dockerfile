@@ -1,3 +1,3 @@
-FROM golang:1-onbuild
+FROM iron/go
 
 EXPOSE 1337
