@@ -10,7 +10,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN GOOS=linux go build  -ldflags="-extldflags=-static" -o /go/bin/url-shortener-app
+RUN GOOS=linux go build  -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o /go/bin/url-shortener-app
 
 ############################
 # STEP 2 build a small image
