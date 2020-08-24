@@ -10,7 +10,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN CGO_ENABLED=0 go build -o /go/bin/url-shortener
+RUN go build -tags netgo -a -v -o /go/bin/url-shortener
 
 ############################
 # STEP 2 build a small image
