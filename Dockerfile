@@ -10,18 +10,12 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN go build -tags netgo -a -v -o /go/bin/url-shortener
+RUN GOOS=linux go build  -ldflags="-extldflags=-static" -o /go/bin/url-shortener-app
 
 ############################
 # STEP 2 build a small image
 ############################
-FROM alpine:latest  
-
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
-
-COPY --from=builder /go/bin/url-shortener .
-CMD ["./url-shortener"] 
-
+FROM scratch
+COPY --from=builder /go/bin/url-shortener-app .
+CMD ["./url-shortener-app"] 
 EXPOSE 1337
