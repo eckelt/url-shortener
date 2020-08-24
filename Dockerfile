@@ -10,7 +10,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN go build CGO_ENABLED=0 -o /go/bin/url-shortener
+RUN CGO_ENABLED=0 go build -o /go/bin/url-shortener
 
 ############################
 # STEP 2 build a small image
