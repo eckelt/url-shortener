@@ -86,7 +86,7 @@ func main() {
 		func(response http.ResponseWriter, request *http.Request) {
 			encodeHandler(response, request, db, baseURL)
 		}).Methods("POST")
-	r.PathPrefix("/static/").Handler(http.FileServer(http.Dir("public")))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("public"))))
 	r.HandleFunc("/{code}", func(response http.ResponseWriter, request *http.Request) {
 		decodeHandler(response, request, db)
 	})
