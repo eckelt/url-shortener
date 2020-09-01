@@ -1,28 +1,37 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"github.com/asaskevich/govalidator"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"path"
 	"time"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
-const base string = "0123456789abcdfghjkmnpqrstvwxyzABCDFGHJKLMNPQRSTVWXYZ"
+const CODE_LENGTH int = 4
 
 func generateCode(n int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-    const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    b := make([]byte, n)
-    for i := range b {
-        b[i] = letters[r.Intn(len(letters))]
-    }
-    return string(b)
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letters[r.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func generateCodeFrom(url string, length int) string {
+	h := sha256.New()
+	h.Write([]byte(url))
+	return (hex.EncodeToString((h.Sum(nil)))[0:length])
 }
 
 func decodeHandler(response http.ResponseWriter, request *http.Request, db Database) {
@@ -38,7 +47,7 @@ func decodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 func encodeHandler(response http.ResponseWriter, request *http.Request, db Database, baseURL string) {
 	decoder := json.NewDecoder(request.Body)
 	var data struct {
-		URL string `json:"url"`
+		URL  string `json:"url"`
 		Code string `json:"code"`
 	}
 	err := decoder.Decode(&data)
@@ -52,8 +61,8 @@ func encodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		return
 	}
 
-	if len(data.Code)<2 {
-		data.Code = generateCode(4)
+	if len(data.Code) < 2 {
+		data.Code = generateCodeFrom(data.URL, CODE_LENGTH)
 	}
 
 	_, code, err := db.Save(data.URL, data.Code)
