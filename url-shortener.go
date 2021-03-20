@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"bytes"
 	"log"
 	"math/rand"
 	"net/http"
@@ -32,6 +34,18 @@ func generateCodeFrom(url string, length int) string {
 	h := sha256.New()
 	h.Write([]byte(url))
 	return (hex.EncodeToString((h.Sum(nil)))[0:length])
+}
+
+func message(trigger string, token string, content string) {
+
+	req := map[string]string{"value1": content, "value2": "", "value3": ""}
+	jsonData, _ := json.Marshal(req)
+
+	_, err := http.Post(fmt.Sprintf("https://maker.ifttt.com/trigger/%s/with/key/%s", trigger, token), "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Println(err)
+	}
+
 }
 
 func decodeHandler(response http.ResponseWriter, request *http.Request, db Database) {
@@ -97,6 +111,13 @@ func main() {
 		}).Methods("POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("public"))))
 	r.HandleFunc("/{code}", func(response http.ResponseWriter, request *http.Request) {
+		trigger := os.Getenv("TRIGGER")
+		token := os.Getenv("TOKEN")
+		code := mux.Vars(request)["code"]
+		if trigger !=  "" && token != "" {
+			message(trigger, token, code)
+		}
+
 		decodeHandler(response, request, db)
 	})
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("public")))
