@@ -105,6 +105,14 @@ func main() {
 
 	baseURL := os.Getenv("BASE_URL")
 
+	trigger := os.Getenv("TRIGGER")
+	token := os.Getenv("TOKEN")
+	if trigger ==  "" || token == "" {
+		log.Println("TOKEN or TRIGGER not found in ENV. No notifiations will be sent.")
+	} else {
+		message(trigger, token, "URL-Shortener started")
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/save",
 		func(response http.ResponseWriter, request *http.Request) {
