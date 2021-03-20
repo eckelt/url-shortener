@@ -133,6 +133,6 @@ func main() {
 		decodeHandler(response, request, db)
 	})
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("public")))
-	log.Println("Starting server on port :1337")
+	log.Println("Starting url-shortener on port :1337")
 	log.Fatal(http.ListenAndServe(":1337", handlers.LoggingHandler(os.Stdout, r)))
 }
