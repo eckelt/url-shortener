@@ -55,6 +55,7 @@ func decodeHandler(response http.ResponseWriter, request *http.Request, db Datab
 		http.Error(response, `{"error": "No such URL"}`, http.StatusNotFound)
 		return
 	}
+
 	http.Redirect(response, request, url, http.StatusPermanentRedirect)
 }
 
@@ -114,7 +115,9 @@ func main() {
 		trigger := os.Getenv("TRIGGER")
 		token := os.Getenv("TOKEN")
 		code := mux.Vars(request)["code"]
-		if trigger !=  "" && token != "" {
+		if trigger ==  "" || token == "" {
+			log.Println("TOKEN or TRIGGER not found in ENV. No notifiations will be sent.")
+		} else {
 			message(trigger, token, code)
 		}
 
