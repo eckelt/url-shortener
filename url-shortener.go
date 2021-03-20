@@ -110,6 +110,7 @@ func main() {
 	if trigger ==  "" || token == "" {
 		log.Println("TOKEN or TRIGGER not found in ENV. No notifiations will be sent.")
 	} else {
+		log.Println("Send startup notification" + token + trigger)
 		message(trigger, token, "URL-Shortener started")
 	}
 
