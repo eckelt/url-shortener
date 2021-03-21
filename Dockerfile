@@ -10,6 +10,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
+RUN go env -w GOPROXY=direct GOFLAGS="-insecure"
 RUN GOOS=linux go build  -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o /go/bin/url-shortener-app
 
 ############################
