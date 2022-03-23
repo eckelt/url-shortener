@@ -19,3 +19,9 @@ There's also a simple web ui available
 or use `docker-compose`  
 
     docker-compose up -d
+
+#### Update the certificate
+
+1. Open the url https://maker.ifttt.com/trigger/<TRIGGER>/with/key/<KEY> to see the certificate. Download that one.
+2. Upload that certificate to github
+3. Use this certificate in the `Dockerfile`
