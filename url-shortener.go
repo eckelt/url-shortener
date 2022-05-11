@@ -126,7 +126,7 @@ func main() {
 		code := mux.Vars(request)["code"]
 		if trigger ==  "" || token == "" {
 			log.Println("TOKEN or TRIGGER not found in ENV. No notifiations will be sent.")
-		} else {
+		} else if unicode.IsUpper(code[0:1]) {
 			message(trigger, token, code)
 		}
 
