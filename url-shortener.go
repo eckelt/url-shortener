@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"time"
+	"unicode"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/handlers"
