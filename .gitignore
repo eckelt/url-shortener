@@ -1,2 +1,4 @@
 *.sqlite
 url-shortener
+node_modules/
+.dev.vars
