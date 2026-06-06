@@ -11,8 +11,8 @@ BASE_URL = "https://ecke.lt"
 # 2. Die zurückgegebenen IDs unten eintragen
 [[kv_namespaces]]
 binding = "URLS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+id = "1d926afa251848d593ddac2cd4b8665c"
+preview_id = "4ee84f403b214f8a9a0df1eae154f5c0"
 
 # AUTH_TOKEN als Secret setzen (nicht hier eintragen!):
 #   npx wrangler secret put AUTH_TOKEN
