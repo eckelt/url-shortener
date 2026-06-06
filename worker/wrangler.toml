@@ -5,14 +5,20 @@ compatibility_date = "2024-09-23"
 [vars]
 BASE_URL = "https://ecke.lt"
 
-# 1. KV Namespace erstellen:
-#    npx wrangler kv namespace create URLS
-#    npx wrangler kv namespace create URLS --preview
-# 2. Die zurückgegebenen IDs unten eintragen
+# Secrets (einmalig setzen, nie hier eintragen):
+#   echo "mein-token" | npx wrangler secret put AUTH_TOKEN
+#   Oder im Cloudflare Dashboard: Workers → url-shortener → Settings → Variables and Secrets
+
 [[kv_namespaces]]
 binding = "URLS"
 id = "1d926afa251848d593ddac2cd4b8665c"
 preview_id = "4ee84f403b214f8a9a0df1eae154f5c0"
 
-# AUTH_TOKEN als Secret setzen (nicht hier eintragen!):
-#   npx wrangler secret put AUTH_TOKEN
+# Routen — werden bei "wrangler deploy" automatisch gesetzt, kein Dashboard-Klicken nötig
+[[routes]]
+pattern = "*ecke.lt/~*"
+zone_name = "ecke.lt"
+
+[[routes]]
+pattern = "kurz.ecke.lt"
+custom_domain = true
