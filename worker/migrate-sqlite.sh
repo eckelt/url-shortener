@@ -15,10 +15,14 @@ fi
 echo "Lese URLs aus $DB ..."
 
 # SQLite → JSON für wrangler kv bulk put
-sqlite3 "$DB" "SELECT id, code, url FROM urls;" | python3 -c "
+sqlite3 "$DB" "SELECT id, code, url FROM urls ORDER BY id ASC;" | python3 -c "
 import sys, json
-rows = [line.rstrip('\n').split('|', 2) for line in sys.stdin if line.strip()]
-data = [{'key': r[1], 'value': r[2]} for r in rows if len(r) == 3 and r[1] and r[2]]
+seen = {}
+for line in sys.stdin:
+    parts = line.rstrip('\n').split('|', 2)
+    if len(parts) == 3 and parts[1] and parts[2] and parts[1] not in seen:
+        seen[parts[1]] = parts[2]
+data = [{'key': k, 'value': v} for k, v in seen.items()]
 print(json.dumps(data, indent=2))
 print(f'# {len(data)} Einträge', file=sys.stderr)
 " > kv-export.json
