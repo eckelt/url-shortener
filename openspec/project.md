@@ -18,13 +18,14 @@ Zusätzlich verwendet dieser Text `[git log: …]` für Aussagen über die Commi
 | short-links | `openspec/specs/short-links/spec.md` | live (Cloudflare Worker) |
 | link-creation | `openspec/specs/link-creation/spec.md` | live (Cloudflare Worker) |
 | deploy | `openspec/specs/deploy/spec.md` | Workflows im Repo |
-| legacy-go-server | `openspec/specs/legacy-go-server/spec.md` | geerbter Code, Betrieb **unbekannt** |
+
+Der geerbte Go/Docker-Teil (`url-shortener.go`, `database.go`, `public/`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/docker-publish.yml`) ist Altlast im Repo, nicht in Betrieb [Nutzer-Auskunft 2026-09-27]. Entfernung: Landscape-Backlog B12 [landscape:backlog.md:20]. `docker-publish.yml` läuft trotzdem bei jedem Push auf `master` weiter, solange B12 nicht umgesetzt ist [.github/workflows/docker-publish.yml:3-7].
 
 ## Zweck
 
 url-shortener macht aus langen Web-Adressen kurze Links der Form `https://ecke.lt/~au5H`, die beim Aufruf auf die ursprüngliche Adresse weiterleiten [README.md:1-5; worker/src/index.ts:127-134].
 Neue Kurzlinks legt man über eine kleine Web-Oberfläche oder eine API unter `https://kurz.ecke.lt` an, geschützt durch ein geheimes Token [README.md:6; README.md:98-120; worker/src/index.ts:136-143].
-Das Ganze läuft heute als Cloudflare Worker mit Cloudflare KV als Speicher; der ältere Go-Server mit SQLite und Docker aus dem ursprünglichen Fork liegt noch im Repo, ob er irgendwo läuft, ist nicht belegt [README.md:7; README.md:143-146; landscape:inventory/raw/cloudflare.yaml:66-76; landscape:inventory/overlay.yaml:194-195].
+Das Ganze läuft heute als Cloudflare Worker mit Cloudflare KV als Speicher; der ältere Go-Server mit SQLite und Docker aus dem ursprünglichen Fork ist Altlast im Repo, nicht in Betrieb [Nutzer-Auskunft 2026-09-27], Entfernung: Landscape-Backlog B12 [README.md:7; README.md:143-146; landscape:backlog.md:20].
 
 ## Herkunft: eigen vs. geerbt
 
@@ -72,9 +73,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 | KV-Namespace, Binding `URLS` (Schlüssel = Code, Wert = Ziel-URL) | Cloudflare Workers KV | `cloudflare-kv:kv@1` | [worker/wrangler.toml:12-13; worker/src/index.ts:2; worker/src/index.ts:131; worker/src/index.ts:166; landscape:inventory/raw/cloudflare.yaml:73-75] |
 | Deploy per `wrangler deploy` (Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) | Cloudflare Workers | `cloudflare-workers:deploy-api@1` | [.github/workflows/deploy.yml:29-34; worker/package.json:7] |
 | Stylesheet `https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css` (im Browser geladen) | unpkg | `unpkg:cdn@1` | [worker/src/index.ts:46; public/index.html:7] |
-| GitHub Actions (beide Workflows) | GitHub Actions | `github-actions:workflows@1` | [.github/workflows/deploy.yml:10-13; .github/workflows/docker-publish.yml:19-27] |
-| Docker-Registry `docker.pkg.github.com/<repo>/server` (Secret `GITHUB_TOKEN`) | GitHub Packages | `github-packages:docker-registry@1` | [.github/workflows/docker-publish.yml:16-17; .github/workflows/docker-publish.yml:55-78] |
-| IFTTT-Webhook `https://maker.ifttt.com/trigger/<TRIGGER>/with/key/<TOKEN>` (nur Go-Server) | IFTTT | `ifttt:webhooks@1` | [url-shortener.go:40-50; url-shortener.go:109-116] |
+| GitHub Actions (Worker-Deploy; `docker-publish.yml` läuft ebenfalls, siehe Hinweis oben) | GitHub Actions | `github-actions:workflows@1` | [.github/workflows/deploy.yml:10-13] |
 
 ## Datenflüsse
 
@@ -82,8 +81,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 2. **Kurzlink anlegen:** Web-Oberfläche oder iOS-Kurzbefehl → `POST https://kurz.ecke.lt/save` mit Bearer-Token → Worker prüft `AUTH_TOKEN`, bildet oder übernimmt den Code, schreibt `URLS[code] = url` in KV → Antwort mit `BASE_URL` + `/~` + Code [worker/src/index.ts:136-170; worker/wrangler.toml:5-6; README.md:82-94].
 3. **Oberfläche laden:** Browser → `GET https://kurz.ecke.lt/` → Worker liefert eingebettetes HTML; das Stylesheet kommt von unpkg.com [worker/src/index.ts:121-125; worker/src/index.ts:46].
 4. **Worker-Deploy:** Push auf `main`/`master` mit Änderungen unter `worker/**` → GitHub Actions: `npm ci`, `npm run typecheck`, `npm run deploy` (= `wrangler deploy`) mit `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` → Cloudflare setzt Script, Route und Custom Domain [.github/workflows/deploy.yml:3-34; worker/package.json:5-9; README.md:52-56]. Workers Builds (Git-Integration bei Cloudflare) ist nicht eingerichtet [landscape:inventory/raw/cloudflare.yaml:70; landscape:inventory/raw/cloudflare.yaml:157].
-5. **Docker-Publish (Erbe):** Jeder Push auf `master` und jeder Tag `v*` → Go-Tests → `docker build` → Push nach `docker.pkg.github.com/<repo>/server:latest` bzw. `:<version>`; bei Pull Requests nur die Tests [.github/workflows/docker-publish.yml:3-17; .github/workflows/docker-publish.yml:22-78]. Ein Ziel, das dieses Image ausführt, ist nicht belegt [landscape:inventory/raw/url-shortener.yaml:31-34; landscape:inventory/overlay.yaml:194-195].
-6. **Einmalige Migration:** `worker/migrate-sqlite.sh` liest `code`/`url` aus einer SQLite-Datei des Go-Servers und schreibt sie per `wrangler kv bulk put` in den KV-Namespace; bei doppelten Codes gewinnt der älteste Eintrag [worker/migrate-sqlite.sh:17-31; README.md:71-78].
+5. **Einmalige Migration:** `worker/migrate-sqlite.sh` liest `code`/`url` aus einer SQLite-Datei des Go-Servers und schreibt sie per `wrangler kv bulk put` in den KV-Namespace; bei doppelten Codes gewinnt der älteste Eintrag [worker/migrate-sqlite.sh:17-31; README.md:71-78].
 
 ## Live-Stand vs. Erbe
 
@@ -94,7 +92,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 | Secret `AUTH_TOKEN`, Bindings `BASE_URL`, `URLS` (KV) | ja (nur Namen) | [landscape:inventory/raw/cloudflare.yaml:71-75] |
 | `workers.dev`-Subdomain des Workers | aktiviert | [landscape:inventory/raw/cloudflare.yaml:69] |
 | Ob der live laufende Worker-Code genau diesem Commit entspricht | unbekannt | siehe Offene Fragen |
-| Go-Server (`url-shortener.go`, `database.go`, `public/`, Docker) | **unbekannt**, kein Laufziel belegt | [landscape:inventory/overlay.yaml:194-195; landscape:inventory/raw/url-shortener.yaml:31-34; README.md:143-146] |
+| Go-Server (`url-shortener.go`, `database.go`, `public/`, Docker) | nicht in Betrieb (Altlast, B12) | [Nutzer-Auskunft 2026-09-27; landscape:backlog.md:20] |
 
 ## Abhängigkeiten
 
@@ -109,11 +107,9 @@ Keine. url-shortener nutzt keine anderen ecke.lt-Produkte und keine internen Lib
 | Cloudflare Workers | Laufzeit, Route, Custom Domain, Deploy-Ziel | [worker/wrangler.toml:1-3; worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-70] |
 | Cloudflare Workers KV | Speicher der Kurzlinks (Binding `URLS`) | [worker/wrangler.toml:12-13; landscape:inventory/raw/cloudflare.yaml:75] |
 | unpkg | CDN für `bonsai.css` (unversioniert `@latest`) | [worker/src/index.ts:46] |
-| GitHub Actions | CI für beide Workflows | [.github/workflows/deploy.yml:10-13; .github/workflows/docker-publish.yml:19-47] |
-| GitHub Packages | Ziel-Registry des Docker-Images `server` | [.github/workflows/docker-publish.yml:16-17; .github/workflows/docker-publish.yml:55-78] |
-| IFTTT | Benachrichtigungen, nur im Go-Server (Env `TRIGGER`, `TOKEN`) | [url-shortener.go:40-50; url-shortener.go:109-132] |
+| GitHub Actions | CI für den Worker-Deploy (`docker-publish.yml` läuft ebenfalls weiter, siehe Hinweis oben) | [.github/workflows/deploy.yml:10-13] |
 
-Build-Werkzeuge (nur Entwicklung): `wrangler`, `typescript`, `@cloudflare/workers-types` im Worker [worker/package.json:10-14]; Go 1.15 mit `govalidator`, `gorilla/handlers`, `gorilla/mux`, `go-sqlite3` im Go-Server [go.mod:1-10].
+Build-Werkzeuge (nur Entwicklung): `wrangler`, `typescript`, `@cloudflare/workers-types` im Worker [worker/package.json:10-14].
 
 ## Bekannte Lücken
 
@@ -123,19 +119,11 @@ Build-Werkzeuge (nur Entwicklung): `wrangler`, `typescript`, `@cloudflare/worker
 - **Wunschcode wird still ersetzt:** Ist der gewünschte Code schon mit einer anderen URL belegt, antwortet die API ohne Fehler mit einem anderen, zufälligen Code [worker/src/index.ts:156-169].
 - **Auth nur, wenn `AUTH_TOKEN` gesetzt ist:** Ohne Secret nimmt `/save` jede Anfrage an; live ist das Secret gesetzt [worker/src/index.ts:138-143; landscape:inventory/raw/cloudflare.yaml:71-72].
 - **README ungenau zum Deploy:** Laut README deployt jeder Push auf `master`; der Workflow startet aber nur bei Änderungen unter `worker/**` [README.md:8; README.md:67; .github/workflows/deploy.yml:3-7].
-- **Docker-Publish bei jedem Push:** Der geerbte Workflow baut und pusht bei jedem Push auf `master` ein Image, obwohl kein Laufziel belegt ist; er nutzt Go 1.15, `actions/*@v2` und die alte Registry `docker.pkg.github.com` [.github/workflows/docker-publish.yml:3-7; .github/workflows/docker-publish.yml:25; .github/workflows/docker-publish.yml:30-34; .github/workflows/docker-publish.yml:56].
-- **`docker-compose.yml` zeigt auf das Upstream-Image** `jhaals/url-shortener`, nicht auf das eigene Image `server` [docker-compose.yml:11; .github/workflows/docker-publish.yml:17].
-- **Go-Server schreibt das IFTTT-Token ins Log** beim Start [url-shortener.go:114].
-- **Alte Oberfläche `public/index.html` verweist auf `https://kurz.ecke.lt/Pattern`** (Hintergrundbild) und `https://kurz.ecke.lt/save`; der Worker beantwortet `/Pattern` mit 404 [public/index.html:14; public/index.html:31; public/index.html:39; worker/src/index.ts:172].
 - **Ressourcen-IDs im Klartext:** Die KV-Namespace-IDs stehen in `worker/wrangler.toml` und `worker/migrate-sqlite.sh` (Werte hier bewusst nicht übernommen) [worker/wrangler.toml:14-15; worker/migrate-sqlite.sh:31].
 
 ## Offene Fragen
 
-- Läuft der Go-Server (Docker-Image `server` aus GitHub Packages oder `jhaals/url-shortener` per `docker-compose.yml`) noch irgendwo, z.B. auf einem eigenen Server? Die README nennt ihn „alten Ansatz“ mit dauerlaufendem Server; ein Ziel ist weder im Repo noch in den Cloudflare-Daten belegt. Status: **unbekannt**.
-- Soll `docker-publish.yml` weiter bei jedem Push auf `master` laufen, oder ist der Go-/Docker-Teil stillgelegt?
 - Wie wurde der live laufende Worker deployt? Laut GitHub-Actions-Historie (abgefragt 2026-09-27 per `gh run list`) sind alle drei Läufe von „Deploy to Cloudflare Workers“ am 2026-06-06 im Schritt „Deploy“ fehlgeschlagen, während „Docker“ erfolgreich war. Workers Builds ist nicht eingerichtet; vermutlich wurde manuell mit `wrangler deploy` deployt. Ob der Live-Code diesem Commit entspricht, ist unbekannt.
-- Gibt es das Docker-Paket `server` in GitHub Packages tatsächlich (Abfrage mangels Scope `read:packages` nicht möglich)?
 - Wurde die Migration aus SQLite durchgeführt, und existiert die alte SQLite-Datenbank noch?
-- Werden `TRIGGER`/`TOKEN` (IFTTT) noch irgendwo gesetzt?
 - Ist die aktivierte `workers.dev`-Subdomain des Workers gewollt?
 - Wer nutzt die Kürz-API außer dem iOS-Kurzbefehl (z.B. andere Skripte)?

@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Automatisierung im Repo: Deploy des Cloudflare Workers und der geerbte Docker-Publish-Workflow für den Go-Server. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+
+**Hinweis (kein Requirement):** Der geerbte Workflow `.github/workflows/docker-publish.yml` läuft weiterhin bei jedem Push auf `master` und bei Tags `v*` (Go-Tests, `docker build`, Push nach `docker.pkg.github.com/<repository>/server`) [.github/workflows/docker-publish.yml:3-17; .github/workflows/docker-publish.yml:22-78]. Er gehört zum Go/Docker-Teil, der Altlast im Repo und nicht in Betrieb ist [Nutzer-Auskunft 2026-09-27]; Entfernung: Landscape-Backlog B12 [landscape:backlog.md:20].
 
 ## Requirements
 
@@ -28,17 +30,3 @@ Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`
 - **WHEN** geprüft wird, ob Cloudflare selbst aus Git baut (Workers Builds)
 - **THEN** ist für `url-shortener` kein Trigger eingerichtet [landscape:inventory/raw/cloudflare.yaml:70; landscape:inventory/raw/cloudflare.yaml:157]
 
-### Requirement: Docker-Publish bei jedem Push auf master
-Das System SHALL bei jedem Push auf `master` und bei Tags `v*` die Go-Tests ausführen und danach ein Docker-Image `server` bauen und nach `docker.pkg.github.com/<repository>/server` pushen; bei Pull Requests laufen nur die Tests [.github/workflows/docker-publish.yml:3-17; .github/workflows/docker-publish.yml:22-78].
-
-#### Scenario: Push auf master (beliebige Datei)
-- **WHEN** ein beliebiger Commit auf `master` gepusht wird, auch einer, der nur `openspec/**` ändert
-- **THEN** laufen `go get -v` und `go test ./...` mit Go 1.15 und anschließend `docker build` und `docker push` mit dem Tag `latest` [.github/workflows/docker-publish.yml:3-7; .github/workflows/docker-publish.yml:22-38; .github/workflows/docker-publish.yml:52-78]
-
-#### Scenario: Tag v1.2.3
-- **WHEN** ein Tag `v1.2.3` gepusht wird
-- **THEN** wird das Image mit dem Tag `1.2.3` gepusht [.github/workflows/docker-publish.yml:9-11; .github/workflows/docker-publish.yml:65-78]
-
-#### Scenario: Pull Request
-- **WHEN** ein Pull Request geöffnet oder aktualisiert wird
-- **THEN** laufen nur die Go-Tests, es wird kein Image gepusht [.github/workflows/docker-publish.yml:13-14; .github/workflows/docker-publish.yml:44-47]

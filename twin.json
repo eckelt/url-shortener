@@ -4,15 +4,14 @@
   "repository": "eckelt/url-shortener",
   "declared": {
     "name": "url-shortener",
-    "summary": "URL-Shortener für Kurzlinks https://ecke.lt/~{code}: Cloudflare Worker mit KV, Kürz-API und Web-Oberfläche auf kurz.ecke.lt; daneben geerbter Go/SQLite/Docker-Server aus dem Fork jhaals/url-shortener, dessen Betrieb unbekannt ist.",
+    "summary": "URL-Shortener für Kurzlinks https://ecke.lt/~{code}: Cloudflare Worker mit KV, Kürz-API und Web-Oberfläche auf kurz.ecke.lt. Geerbter Go/Docker-Teil ist Altlast im Repo, nicht in Betrieb (Landscape-Backlog B12).",
     "managed": "oneshot",
     "visibility": "public",
     "docs": [
       "openspec/project.md",
       "openspec/specs/short-links/spec.md",
       "openspec/specs/link-creation/spec.md",
-      "openspec/specs/deploy/spec.md",
-      "openspec/specs/legacy-go-server/spec.md"
+      "openspec/specs/deploy/spec.md"
     ],
     "containers": [
       {
@@ -94,58 +93,6 @@
             "protocol": "Cloudflare API (wrangler deploy)",
             "contractRef": "cloudflare-workers:deploy-api@1",
             "summary": "npm run deploy = wrangler deploy; Secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID"
-          }
-        ]
-      },
-      {
-        "id": "docker-publish",
-        "kind": "service",
-        "name": "Docker-Publish-Workflow (Erbe)",
-        "summary": ".github/workflows/docker-publish.yml: bei JEDEM Push auf master und Tags v* Go-Tests, docker build und Push des Images server nach docker.pkg.github.com; bei Pull Requests nur Tests. Secret (nur Name): GITHUB_TOKEN.",
-        "deployment": "GitHub Actions (ubuntu-latest)",
-        "docs": [
-          "openspec/specs/deploy/spec.md"
-        ],
-        "interfaces": [
-          {
-            "id": "actions",
-            "direction": "consumes",
-            "protocol": "GitHub Actions",
-            "contractRef": "github-actions:workflows@1",
-            "summary": "Runner ubuntu-latest, actions/checkout@v2, actions/setup-go@v2 (Go 1.15)"
-          },
-          {
-            "id": "docker-registry",
-            "direction": "consumes",
-            "protocol": "Docker Registry (HTTPS)",
-            "contractRef": "github-packages:docker-registry@1",
-            "summary": "docker.pkg.github.com/<repository>/server; Secret GITHUB_TOKEN"
-          }
-        ]
-      },
-      {
-        "id": "legacy-go-server",
-        "kind": "service",
-        "name": "Go-Server (Erbe von jhaals/url-shortener)",
-        "summary": "Go + SQLite + Docker, Port 1337, POST /save ohne Auth, GET /{code} 308, statische Oberfläche public/, optionale IFTTT-Benachrichtigung. Betrieb unbekannt: kein Laufziel belegt.",
-        "deployment": "unbekannt (Docker-Image server in GitHub Packages; kein Laufziel belegt)",
-        "docs": [
-          "openspec/specs/legacy-go-server/spec.md"
-        ],
-        "interfaces": [
-          {
-            "id": "ifttt-webhook",
-            "direction": "consumes",
-            "protocol": "HTTPS JSON",
-            "contractRef": "ifttt:webhooks@1",
-            "summary": "https://maker.ifttt.com/trigger/<TRIGGER>/with/key/<TOKEN> (nur wenn TRIGGER und TOKEN gesetzt)"
-          },
-          {
-            "id": "bonsai-css",
-            "direction": "consumes",
-            "protocol": "HTTPS CSS",
-            "contractRef": "unpkg:cdn@1",
-            "summary": "public/index.html lädt bonsai.css von unpkg.com"
           }
         ]
       }
@@ -242,38 +189,6 @@
             ]
           }
         ]
-      },
-      {
-        "id": "github-packages",
-        "vendor": "GitHub",
-        "category": "platform",
-        "docsUrl": "https://docs.github.com/packages",
-        "interfaces": [
-          {
-            "id": "docker-registry",
-            "protocol": "Docker Registry (HTTPS)",
-            "contractRef": "github-packages:docker-registry@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
-      },
-      {
-        "id": "ifttt",
-        "vendor": "IFTTT",
-        "category": "other",
-        "docsUrl": "https://ifttt.com/maker_webhooks",
-        "interfaces": [
-          {
-            "id": "webhooks",
-            "protocol": "HTTPS JSON",
-            "contractRef": "ifttt:webhooks@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
       }
     ]
   },
@@ -289,7 +204,7 @@
         "level": "product",
         "kind": "product",
         "name": "url-shortener",
-        "summary": "URL-Shortener für ecke.lt/~{code}: Cloudflare Worker mit KV (live); geerbter Go/Docker-Server aus jhaals/url-shortener (Betrieb unbekannt).",
+        "summary": "URL-Shortener für ecke.lt/~{code}: Cloudflare Worker mit KV (live). Geerbter Go/Docker-Teil ist Altlast im Repo, nicht in Betrieb (Landscape-Backlog B12).",
         "repository": "eckelt/url-shortener",
         "visibility": "public",
         "managed": "oneshot",
@@ -297,8 +212,7 @@
           "openspec/project.md",
           "openspec/specs/short-links/spec.md",
           "openspec/specs/link-creation/spec.md",
-          "openspec/specs/deploy/spec.md",
-          "openspec/specs/legacy-go-server/spec.md"
+          "openspec/specs/deploy/spec.md"
         ],
         "provenance": {
           "source": "declared",
@@ -382,58 +296,6 @@
           "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
           "at": "2026-09-27T00:00:00Z"
         }
-      },
-      {
-        "id": "url-shortener/docker-publish",
-        "level": "container",
-        "kind": "service",
-        "name": "Docker-Publish-Workflow (Erbe)",
-        "path": ".github/workflows/docker-publish.yml",
-        "interfaces": [
-          {
-            "id": "actions",
-            "direction": "consumes",
-            "protocol": "GitHub Actions",
-            "contractRef": "github-actions:workflows@1"
-          },
-          {
-            "id": "docker-registry",
-            "direction": "consumes",
-            "protocol": "Docker Registry (HTTPS)",
-            "contractRef": "github-packages:docker-registry@1"
-          }
-        ],
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      },
-      {
-        "id": "url-shortener/legacy-go-server",
-        "level": "container",
-        "kind": "service",
-        "name": "Go-Server (Erbe von jhaals/url-shortener)",
-        "path": "url-shortener.go",
-        "interfaces": [
-          {
-            "id": "ifttt-webhook",
-            "direction": "consumes",
-            "protocol": "HTTPS JSON",
-            "contractRef": "ifttt:webhooks@1"
-          },
-          {
-            "id": "bonsai-css",
-            "direction": "consumes",
-            "protocol": "HTTPS CSS",
-            "contractRef": "unpkg:cdn@1"
-          }
-        ],
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
       }
     ],
     "edges": [
@@ -462,23 +324,6 @@
         "protocol": "Cloudflare API (wrangler deploy)",
         "attributes": {
           "evidence": ".github/workflows/deploy.yml:29-34"
-        },
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      },
-      {
-        "id": "url-shortener/docker-publish=>external/github-packages:writes",
-        "from": "url-shortener/docker-publish",
-        "to": "external/github-packages",
-        "perspective": "deployment",
-        "kind": "writes",
-        "protocol": "Docker Registry (HTTPS)",
-        "attributes": {
-          "evidence": ".github/workflows/docker-publish.yml:52-78",
-          "target": "docker.pkg.github.com/<repository>/server"
         },
         "provenance": {
           "source": "declared",
