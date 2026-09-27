@@ -1,0 +1,492 @@
+{
+  "schemaVersion": 3,
+  "product": "url-shortener",
+  "repository": "eckelt/url-shortener",
+  "declared": {
+    "name": "url-shortener",
+    "summary": "URL-Shortener für Kurzlinks https://ecke.lt/~{code}: Cloudflare Worker mit KV, Kürz-API und Web-Oberfläche auf kurz.ecke.lt; daneben geerbter Go/SQLite/Docker-Server aus dem Fork jhaals/url-shortener, dessen Betrieb unbekannt ist.",
+    "managed": "oneshot",
+    "visibility": "public",
+    "docs": [
+      "openspec/project.md",
+      "openspec/specs/short-links/spec.md",
+      "openspec/specs/link-creation/spec.md",
+      "openspec/specs/deploy/spec.md",
+      "openspec/specs/legacy-go-server/spec.md"
+    ],
+    "containers": [
+      {
+        "id": "worker",
+        "kind": "service",
+        "name": "Cloudflare Worker url-shortener",
+        "summary": "TypeScript-Worker: Kurzlink-Weiterleitung /~{code} (301), Kürz-API POST /save mit Bearer-Token (Secret AUTH_TOKEN), Web-Oberfläche auf kurz.ecke.lt; Speicher Cloudflare KV (Binding URLS). Live laut Cloudflare-Livedaten.",
+        "deployment": "Cloudflare Workers (Route *ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
+        "visibility": "public",
+        "docs": [
+          "openspec/specs/short-links/spec.md",
+          "openspec/specs/link-creation/spec.md"
+        ],
+        "interfaces": [
+          {
+            "id": "short-links",
+            "direction": "provides",
+            "protocol": "HTTPS Redirect (301)",
+            "contractRef": "url-shortener:short-links@1",
+            "summary": "GET https://ecke.lt/~{code} (Route *ecke.lt/~*) und https://kurz.ecke.lt/~{code}"
+          },
+          {
+            "id": "shorten-api",
+            "direction": "provides",
+            "protocol": "HTTPS JSON (Bearer-Token)",
+            "contractRef": "url-shortener:shorten-api@1",
+            "summary": "POST https://kurz.ecke.lt/save {url, code?} -> {url, code, error}"
+          },
+          {
+            "id": "web-ui",
+            "direction": "provides",
+            "protocol": "HTTPS HTML",
+            "contractRef": "url-shortener:web-ui@1",
+            "summary": "GET https://kurz.ecke.lt/ (Formular URL/Code/Token)"
+          },
+          {
+            "id": "workers-runtime",
+            "direction": "consumes",
+            "protocol": "Cloudflare Workers",
+            "contractRef": "cloudflare-workers:runtime@1",
+            "summary": "Worker url-shortener, Route *ecke.lt/~*, Custom Domain kurz.ecke.lt"
+          },
+          {
+            "id": "kv-urls",
+            "direction": "consumes",
+            "protocol": "Workers KV Binding",
+            "contractRef": "cloudflare-kv:kv@1",
+            "summary": "KV-Binding URLS (Code -> Ziel-URL)"
+          },
+          {
+            "id": "bonsai-css",
+            "direction": "consumes",
+            "protocol": "HTTPS CSS",
+            "contractRef": "unpkg:cdn@1",
+            "summary": "https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css (im Browser)"
+          }
+        ]
+      },
+      {
+        "id": "deploy-worker",
+        "kind": "service",
+        "name": "Worker-Deploy-Workflow",
+        "summary": ".github/workflows/deploy.yml: bei Push auf main/master mit Änderungen unter worker/** npm ci, typecheck, wrangler deploy. Secrets (nur Namen): CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID.",
+        "deployment": "GitHub Actions (ubuntu-latest)",
+        "docs": [
+          "openspec/specs/deploy/spec.md"
+        ],
+        "interfaces": [
+          {
+            "id": "actions",
+            "direction": "consumes",
+            "protocol": "GitHub Actions",
+            "contractRef": "github:actions@1",
+            "summary": "Runner ubuntu-latest, actions/checkout@v4, actions/setup-node@v4"
+          },
+          {
+            "id": "workers-deploy",
+            "direction": "consumes",
+            "protocol": "Cloudflare API (wrangler deploy)",
+            "contractRef": "cloudflare-workers:deploy-api@1",
+            "summary": "npm run deploy = wrangler deploy; Secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID"
+          }
+        ]
+      },
+      {
+        "id": "docker-publish",
+        "kind": "service",
+        "name": "Docker-Publish-Workflow (Erbe)",
+        "summary": ".github/workflows/docker-publish.yml: bei JEDEM Push auf master und Tags v* Go-Tests, docker build und Push des Images server nach docker.pkg.github.com; bei Pull Requests nur Tests. Secret (nur Name): GITHUB_TOKEN.",
+        "deployment": "GitHub Actions (ubuntu-latest)",
+        "docs": [
+          "openspec/specs/deploy/spec.md"
+        ],
+        "interfaces": [
+          {
+            "id": "actions",
+            "direction": "consumes",
+            "protocol": "GitHub Actions",
+            "contractRef": "github:actions@1",
+            "summary": "Runner ubuntu-latest, actions/checkout@v2, actions/setup-go@v2 (Go 1.15)"
+          },
+          {
+            "id": "docker-registry",
+            "direction": "consumes",
+            "protocol": "Docker Registry (HTTPS)",
+            "contractRef": "github-packages:docker-registry@1",
+            "summary": "docker.pkg.github.com/<repository>/server; Secret GITHUB_TOKEN"
+          }
+        ]
+      },
+      {
+        "id": "legacy-go-server",
+        "kind": "service",
+        "name": "Go-Server (Erbe von jhaals/url-shortener)",
+        "summary": "Go + SQLite + Docker, Port 1337, POST /save ohne Auth, GET /{code} 308, statische Oberfläche public/, optionale IFTTT-Benachrichtigung. Betrieb unbekannt: kein Laufziel belegt.",
+        "deployment": "unbekannt (Docker-Image server in GitHub Packages; kein Laufziel belegt)",
+        "docs": [
+          "openspec/specs/legacy-go-server/spec.md"
+        ],
+        "interfaces": [
+          {
+            "id": "ifttt-webhook",
+            "direction": "consumes",
+            "protocol": "HTTPS JSON",
+            "contractRef": "ifttt:webhooks@1",
+            "summary": "https://maker.ifttt.com/trigger/<TRIGGER>/with/key/<TOKEN> (nur wenn TRIGGER und TOKEN gesetzt)"
+          },
+          {
+            "id": "bonsai-css",
+            "direction": "consumes",
+            "protocol": "HTTPS CSS",
+            "contractRef": "unpkg:cdn@1",
+            "summary": "public/index.html lädt bonsai.css von unpkg.com"
+          }
+        ]
+      }
+    ],
+    "contracts": [
+      {
+        "id": "url-shortener:short-links@1",
+        "producer": "url-shortener",
+        "consumers": [],
+        "version": "1"
+      },
+      {
+        "id": "url-shortener:shorten-api@1",
+        "producer": "url-shortener",
+        "consumers": [],
+        "version": "1"
+      },
+      {
+        "id": "url-shortener:web-ui@1",
+        "producer": "url-shortener",
+        "consumers": [],
+        "version": "1"
+      }
+    ],
+    "externals": [
+      {
+        "id": "cloudflare-workers",
+        "vendor": "Cloudflare",
+        "category": "hosting",
+        "consoleUrl": "https://dash.cloudflare.com",
+        "interfaces": [
+          {
+            "id": "runtime",
+            "protocol": "Cloudflare Workers",
+            "contractRef": "cloudflare-workers:runtime@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          },
+          {
+            "id": "deploy-api",
+            "protocol": "Cloudflare API (wrangler deploy)",
+            "contractRef": "cloudflare-workers:deploy-api@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "cloudflare-kv",
+        "vendor": "Cloudflare",
+        "category": "platform",
+        "consoleUrl": "https://dash.cloudflare.com",
+        "interfaces": [
+          {
+            "id": "kv",
+            "protocol": "Workers KV Binding",
+            "contractRef": "cloudflare-kv:kv@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "unpkg",
+        "vendor": "unpkg",
+        "category": "other",
+        "docsUrl": "https://unpkg.com",
+        "interfaces": [
+          {
+            "id": "cdn",
+            "protocol": "HTTPS",
+            "contractRef": "unpkg:cdn@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "github",
+        "vendor": "GitHub",
+        "category": "vcs",
+        "consoleUrl": "https://github.com/eckelt/url-shortener",
+        "interfaces": [
+          {
+            "id": "actions",
+            "protocol": "GitHub Actions",
+            "contractRef": "github:actions@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "github-packages",
+        "vendor": "GitHub",
+        "category": "platform",
+        "docsUrl": "https://docs.github.com/packages",
+        "interfaces": [
+          {
+            "id": "docker-registry",
+            "protocol": "Docker Registry (HTTPS)",
+            "contractRef": "github-packages:docker-registry@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ifttt",
+        "vendor": "IFTTT",
+        "category": "other",
+        "docsUrl": "https://ifttt.com/maker_webhooks",
+        "interfaces": [
+          {
+            "id": "webhooks",
+            "protocol": "HTTPS JSON",
+            "contractRef": "ifttt:webhooks@1",
+            "consumers": [
+              "url-shortener"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "derived": {
+    "provenance": {
+      "source": "declared",
+      "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+      "at": "2026-09-27T00:00:00Z"
+    },
+    "nodes": [
+      {
+        "id": "url-shortener",
+        "level": "product",
+        "kind": "product",
+        "name": "url-shortener",
+        "summary": "URL-Shortener für ecke.lt/~{code}: Cloudflare Worker mit KV (live); geerbter Go/Docker-Server aus jhaals/url-shortener (Betrieb unbekannt).",
+        "repository": "eckelt/url-shortener",
+        "visibility": "public",
+        "managed": "oneshot",
+        "docs": [
+          "openspec/project.md",
+          "openspec/specs/short-links/spec.md",
+          "openspec/specs/link-creation/spec.md",
+          "openspec/specs/deploy/spec.md",
+          "openspec/specs/legacy-go-server/spec.md"
+        ],
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/worker",
+        "level": "container",
+        "kind": "service",
+        "name": "Cloudflare Worker url-shortener",
+        "path": "worker/src/index.ts",
+        "visibility": "public",
+        "interfaces": [
+          {
+            "id": "short-links",
+            "direction": "provides",
+            "protocol": "HTTPS Redirect (301)",
+            "contractRef": "url-shortener:short-links@1"
+          },
+          {
+            "id": "shorten-api",
+            "direction": "provides",
+            "protocol": "HTTPS JSON (Bearer-Token)",
+            "contractRef": "url-shortener:shorten-api@1"
+          },
+          {
+            "id": "web-ui",
+            "direction": "provides",
+            "protocol": "HTTPS HTML",
+            "contractRef": "url-shortener:web-ui@1"
+          },
+          {
+            "id": "workers-runtime",
+            "direction": "consumes",
+            "protocol": "Cloudflare Workers",
+            "contractRef": "cloudflare-workers:runtime@1"
+          },
+          {
+            "id": "kv-urls",
+            "direction": "consumes",
+            "protocol": "Workers KV Binding",
+            "contractRef": "cloudflare-kv:kv@1"
+          },
+          {
+            "id": "bonsai-css",
+            "direction": "consumes",
+            "protocol": "HTTPS CSS",
+            "contractRef": "unpkg:cdn@1"
+          }
+        ],
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/deploy-worker",
+        "level": "container",
+        "kind": "service",
+        "name": "Worker-Deploy-Workflow",
+        "path": ".github/workflows/deploy.yml",
+        "interfaces": [
+          {
+            "id": "actions",
+            "direction": "consumes",
+            "protocol": "GitHub Actions",
+            "contractRef": "github:actions@1"
+          },
+          {
+            "id": "workers-deploy",
+            "direction": "consumes",
+            "protocol": "Cloudflare API (wrangler deploy)",
+            "contractRef": "cloudflare-workers:deploy-api@1"
+          }
+        ],
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/docker-publish",
+        "level": "container",
+        "kind": "service",
+        "name": "Docker-Publish-Workflow (Erbe)",
+        "path": ".github/workflows/docker-publish.yml",
+        "interfaces": [
+          {
+            "id": "actions",
+            "direction": "consumes",
+            "protocol": "GitHub Actions",
+            "contractRef": "github:actions@1"
+          },
+          {
+            "id": "docker-registry",
+            "direction": "consumes",
+            "protocol": "Docker Registry (HTTPS)",
+            "contractRef": "github-packages:docker-registry@1"
+          }
+        ],
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/legacy-go-server",
+        "level": "container",
+        "kind": "service",
+        "name": "Go-Server (Erbe von jhaals/url-shortener)",
+        "path": "url-shortener.go",
+        "interfaces": [
+          {
+            "id": "ifttt-webhook",
+            "direction": "consumes",
+            "protocol": "HTTPS JSON",
+            "contractRef": "ifttt:webhooks@1"
+          },
+          {
+            "id": "bonsai-css",
+            "direction": "consumes",
+            "protocol": "HTTPS CSS",
+            "contractRef": "unpkg:cdn@1"
+          }
+        ],
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "url-shortener/worker=>external/cloudflare-workers:deploys-to",
+        "from": "url-shortener/worker",
+        "to": "external/cloudflare-workers",
+        "perspective": "deployment",
+        "kind": "deploys-to",
+        "protocol": "HTTPS",
+        "attributes": {
+          "evidence": "worker/wrangler.toml:1-24; landscape:inventory/raw/cloudflare.yaml:66-76"
+        },
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/deploy-worker=>external/cloudflare-workers:writes",
+        "from": "url-shortener/deploy-worker",
+        "to": "external/cloudflare-workers",
+        "perspective": "deployment",
+        "kind": "writes",
+        "protocol": "Cloudflare API (wrangler deploy)",
+        "attributes": {
+          "evidence": ".github/workflows/deploy.yml:29-34"
+        },
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      },
+      {
+        "id": "url-shortener/docker-publish=>external/github-packages:writes",
+        "from": "url-shortener/docker-publish",
+        "to": "external/github-packages",
+        "perspective": "deployment",
+        "kind": "writes",
+        "protocol": "Docker Registry (HTTPS)",
+        "attributes": {
+          "evidence": ".github/workflows/docker-publish.yml:52-78",
+          "target": "docker.pkg.github.com/<repository>/server"
+        },
+        "provenance": {
+          "source": "declared",
+          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
+          "at": "2026-09-27T00:00:00Z"
+        }
+      }
+    ],
+    "violations": []
+  }
+}
