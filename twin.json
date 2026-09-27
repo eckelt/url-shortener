@@ -85,7 +85,7 @@
             "id": "actions",
             "direction": "consumes",
             "protocol": "GitHub Actions",
-            "contractRef": "github:actions@1",
+            "contractRef": "github-actions:workflows@1",
             "summary": "Runner ubuntu-latest, actions/checkout@v4, actions/setup-node@v4"
           },
           {
@@ -111,7 +111,7 @@
             "id": "actions",
             "direction": "consumes",
             "protocol": "GitHub Actions",
-            "contractRef": "github:actions@1",
+            "contractRef": "github-actions:workflows@1",
             "summary": "Runner ubuntu-latest, actions/checkout@v2, actions/setup-go@v2 (Go 1.15)"
           },
           {
@@ -228,15 +228,15 @@
         ]
       },
       {
-        "id": "github",
+        "id": "github-actions",
         "vendor": "GitHub",
         "category": "vcs",
         "consoleUrl": "https://github.com/eckelt/url-shortener",
         "interfaces": [
           {
-            "id": "actions",
+            "id": "workflows",
             "protocol": "GitHub Actions",
-            "contractRef": "github:actions@1",
+            "contractRef": "github-actions:workflows@1",
             "consumers": [
               "url-shortener"
             ]
@@ -368,7 +368,7 @@
             "id": "actions",
             "direction": "consumes",
             "protocol": "GitHub Actions",
-            "contractRef": "github:actions@1"
+            "contractRef": "github-actions:workflows@1"
           },
           {
             "id": "workers-deploy",
@@ -394,7 +394,7 @@
             "id": "actions",
             "direction": "consumes",
             "protocol": "GitHub Actions",
-            "contractRef": "github:actions@1"
+            "contractRef": "github-actions:workflows@1"
           },
           {
             "id": "docker-registry",

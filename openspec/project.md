@@ -72,7 +72,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 | KV-Namespace, Binding `URLS` (Schlüssel = Code, Wert = Ziel-URL) | Cloudflare Workers KV | `cloudflare-kv:kv@1` | [worker/wrangler.toml:12-13; worker/src/index.ts:2; worker/src/index.ts:131; worker/src/index.ts:166; landscape:inventory/raw/cloudflare.yaml:73-75] |
 | Deploy per `wrangler deploy` (Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) | Cloudflare Workers | `cloudflare-workers:deploy-api@1` | [.github/workflows/deploy.yml:29-34; worker/package.json:7] |
 | Stylesheet `https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css` (im Browser geladen) | unpkg | `unpkg:cdn@1` | [worker/src/index.ts:46; public/index.html:7] |
-| GitHub Actions (beide Workflows) | GitHub | `github:actions@1` | [.github/workflows/deploy.yml:10-13; .github/workflows/docker-publish.yml:19-27] |
+| GitHub Actions (beide Workflows) | GitHub Actions | `github-actions:workflows@1` | [.github/workflows/deploy.yml:10-13; .github/workflows/docker-publish.yml:19-27] |
 | Docker-Registry `docker.pkg.github.com/<repo>/server` (Secret `GITHUB_TOKEN`) | GitHub Packages | `github-packages:docker-registry@1` | [.github/workflows/docker-publish.yml:16-17; .github/workflows/docker-publish.yml:55-78] |
 | IFTTT-Webhook `https://maker.ifttt.com/trigger/<TRIGGER>/with/key/<TOKEN>` (nur Go-Server) | IFTTT | `ifttt:webhooks@1` | [url-shortener.go:40-50; url-shortener.go:109-116] |
 
