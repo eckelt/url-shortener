@@ -231,7 +231,7 @@
         "id": "github-actions",
         "vendor": "GitHub",
         "category": "vcs",
-        "consoleUrl": "https://github.com/eckelt/url-shortener",
+        "consoleUrl": "https://github.com/eckelt",
         "interfaces": [
           {
             "id": "workflows",
