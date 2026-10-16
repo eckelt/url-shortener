@@ -16,7 +16,7 @@ preview_id = "4ee84f403b214f8a9a0df1eae154f5c0"
 
 # Routen — werden bei "wrangler deploy" automatisch gesetzt, kein Dashboard-Klicken nötig
 [[routes]]
-pattern = "*ecke.lt/~*"
+pattern = "ecke.lt/~*"
 zone_name = "ecke.lt"
 
 [[routes]]

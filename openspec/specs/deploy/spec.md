@@ -20,11 +20,11 @@ Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `wor
 - **THEN** startet kein Worker-Deploy [.github/workflows/deploy.yml:3-7]
 
 ### Requirement: Infrastruktur aus wrangler.toml
-Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `*ecke.lt/~*` und die Custom Domain `kurz.ecke.lt` aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt [worker/wrangler.toml:1-24; README.md:38-56].
+Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/~*` und die Custom Domain `kurz.ecke.lt` aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt [worker/wrangler.toml:1-24; README.md:38-56].
 
 #### Scenario: Live-Konfiguration
 - **WHEN** die Cloudflare-Konfiguration des Workers `url-shortener` abgefragt wird
-- **THEN** zeigt sie die Route `*ecke.lt/~*`, die Custom Domain `kurz.ecke.lt`, das Secret `AUTH_TOKEN` und die Bindings `BASE_URL` und `URLS` [landscape:inventory/raw/cloudflare.yaml:66-76]
+- **THEN** zeigt sie die Route `ecke.lt/~*`, die Custom Domain `kurz.ecke.lt`, das Secret `AUTH_TOKEN` und die Bindings `BASE_URL` und `URLS` [landscape:inventory/raw/cloudflare.yaml:66-76]
 
 #### Scenario: Keine Cloudflare-Git-Integration
 - **WHEN** geprüft wird, ob Cloudflare selbst aus Git baut (Workers Builds)

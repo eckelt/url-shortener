@@ -19,7 +19,7 @@
         "kind": "service",
         "name": "Cloudflare Worker url-shortener",
         "summary": "TypeScript-Worker: Kurzlink-Weiterleitung /~{code} (301), Kürz-API POST /save mit Bearer-Token (Secret AUTH_TOKEN), Web-Oberfläche auf kurz.ecke.lt; Speicher Cloudflare KV (Binding URLS). Live laut Cloudflare-Livedaten.",
-        "deployment": "Cloudflare Workers (Route *ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
+        "deployment": "Cloudflare Workers (Route ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
         "visibility": "public",
         "docs": [
           "openspec/specs/short-links/spec.md",
@@ -31,7 +31,7 @@
             "direction": "provides",
             "protocol": "HTTPS Redirect (301)",
             "contractRef": "url-shortener:short-links@1",
-            "summary": "GET https://ecke.lt/~{code} (Route *ecke.lt/~*) und https://kurz.ecke.lt/~{code}"
+            "summary": "GET https://ecke.lt/~{code} (Route ecke.lt/~*) und https://kurz.ecke.lt/~{code}"
           },
           {
             "id": "shorten-api",
@@ -52,7 +52,7 @@
             "direction": "consumes",
             "protocol": "Cloudflare Workers",
             "contractRef": "cloudflare-workers:runtime@1",
-            "summary": "Worker url-shortener, Route *ecke.lt/~*, Custom Domain kurz.ecke.lt"
+            "summary": "Worker url-shortener, Route ecke.lt/~*, Custom Domain kurz.ecke.lt"
           },
           {
             "id": "kv-urls",

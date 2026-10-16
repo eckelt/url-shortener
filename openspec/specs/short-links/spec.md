@@ -18,7 +18,7 @@ Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit eine
 - **THEN** antwortet der Worker mit 404 und dem Text `Not found` [worker/src/index.ts:130-132]
 
 ### Requirement: Erreichbarkeit über Route und Custom Domain
-Das System SHALL Kurzlinks über die Route `*ecke.lt/~*` der Zone `ecke.lt` und zusätzlich über die Custom Domain `kurz.ecke.lt` annehmen [worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-68].
+Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und zusätzlich über die Custom Domain `kurz.ecke.lt` annehmen [worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-68].
 
 #### Scenario: Aufruf über ecke.lt
 - **WHEN** eine Anfrage auf `https://ecke.lt/~{code}` eingeht

@@ -50,7 +50,7 @@ npx wrangler deploy
 ```
 
 Wrangler setzt dabei automatisch:
-- Route `*ecke.lt/~*` (Kurz-URLs)
+- Route `ecke.lt/~*` (Kurz-URLs)
 - Custom Domain `kurz.ecke.lt` (Web-UI & API)
 
 Kein manuelles Klicken im Dashboard nötig — alles steht in `wrangler.toml`.

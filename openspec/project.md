@@ -59,7 +59,7 @@ Dateien nach Herkunft (erster Commit / Autoren laut `git log --follow`):
 
 | Schnittstelle | Inhalt | contractRef | Beleg |
 |---|---|---|---|
-| Kurzlinks | `GET https://ecke.lt/~{code}` (und jeder andere Host der Route `*ecke.lt/~*`, auch `https://kurz.ecke.lt/~{code}`) → 301 auf die Ziel-URL | `url-shortener:short-links@1` | [worker/wrangler.toml:18-24; worker/src/index.ts:127-134; landscape:inventory/overlay.yaml:49-51] |
+| Kurzlinks | `GET https://ecke.lt/~{code}` (und über die Custom Domain `https://kurz.ecke.lt/~{code}`) → 301 auf die Ziel-URL | `url-shortener:short-links@1` | [worker/wrangler.toml:18-24; worker/src/index.ts:127-134; landscape:inventory/overlay.yaml:49-51] |
 | Kürz-API | `POST https://kurz.ecke.lt/save`, JSON `{url, code?}`, Header `Authorization: Bearer <AUTH_TOKEN>` → JSON `{url, code, error}` | `url-shortener:shorten-api@1` | [worker/src/index.ts:136-170; README.md:98-120] |
 | Web-Oberfläche | `GET https://kurz.ecke.lt/` (HTML-Formular URL/Code/Token) | `url-shortener:web-ui@1` | [worker/src/index.ts:41-125; worker/wrangler.toml:22-24] |
 
@@ -69,7 +69,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 
 | Schnittstelle | Anbieter | contractRef | Beleg |
 |---|---|---|---|
-| Worker-Laufzeit, Route `*ecke.lt/~*` in Zone `ecke.lt`, Custom Domain `kurz.ecke.lt` | Cloudflare Workers | `cloudflare-workers:runtime@1` | [worker/wrangler.toml:1-3; worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-69] |
+| Worker-Laufzeit, Route `ecke.lt/~*` in Zone `ecke.lt`, Custom Domain `kurz.ecke.lt` | Cloudflare Workers | `cloudflare-workers:runtime@1` | [worker/wrangler.toml:1-3; worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-69] |
 | KV-Namespace, Binding `URLS` (Schlüssel = Code, Wert = Ziel-URL) | Cloudflare Workers KV | `cloudflare-kv:kv@1` | [worker/wrangler.toml:12-13; worker/src/index.ts:2; worker/src/index.ts:131; worker/src/index.ts:166; landscape:inventory/raw/cloudflare.yaml:73-75] |
 | Deploy per `wrangler deploy` (Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) | Cloudflare Workers | `cloudflare-workers:deploy-api@1` | [.github/workflows/deploy.yml:29-34; worker/package.json:7] |
 | Stylesheet `https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css` (im Browser geladen) | unpkg | `unpkg:cdn@1` | [worker/src/index.ts:46; public/index.html:7] |
@@ -77,7 +77,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 
 ## Datenflüsse
 
-1. **Kurzlink aufrufen:** Browser → `https://ecke.lt/~{code}` → Cloudflare-Route `*ecke.lt/~*` → Worker `url-shortener` liest `URLS[code]` aus KV → 301 auf die Ziel-URL, sonst 404 `Not found` [worker/wrangler.toml:18-20; worker/src/index.ts:127-134; landscape:inventory/raw/cloudflare.yaml:67].
+1. **Kurzlink aufrufen:** Browser → `https://ecke.lt/~{code}` → Cloudflare-Route `ecke.lt/~*` → Worker `url-shortener` liest `URLS[code]` aus KV → 301 auf die Ziel-URL, sonst 404 `Not found` [worker/wrangler.toml:18-20; worker/src/index.ts:127-134; landscape:inventory/raw/cloudflare.yaml:67].
 2. **Kurzlink anlegen:** Web-Oberfläche oder iOS-Kurzbefehl → `POST https://kurz.ecke.lt/save` mit Bearer-Token → Worker prüft `AUTH_TOKEN`, bildet oder übernimmt den Code, schreibt `URLS[code] = url` in KV → Antwort mit `BASE_URL` + `/~` + Code [worker/src/index.ts:136-170; worker/wrangler.toml:5-6; README.md:82-94].
 3. **Oberfläche laden:** Browser → `GET https://kurz.ecke.lt/` → Worker liefert eingebettetes HTML; das Stylesheet kommt von unpkg.com [worker/src/index.ts:121-125; worker/src/index.ts:46].
 4. **Worker-Deploy:** Push auf `main`/`master` mit Änderungen unter `worker/**` → GitHub Actions: `npm ci`, `npm run typecheck`, `npm run deploy` (= `wrangler deploy`) mit `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` → Cloudflare setzt Script, Route und Custom Domain [.github/workflows/deploy.yml:3-34; worker/package.json:5-9; README.md:52-56]. Workers Builds (Git-Integration bei Cloudflare) ist nicht eingerichtet [landscape:inventory/raw/cloudflare.yaml:70; landscape:inventory/raw/cloudflare.yaml:157].
@@ -87,7 +87,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 
 | Teil | Nachweis live | Beleg |
 |---|---|---|
-| Worker `url-shortener`, Route `*ecke.lt/~*` | ja (Cloudflare-Livedaten) | [landscape:inventory/raw/cloudflare.yaml:66-67; landscape:inventory/overlay.yaml:49-51] |
+| Worker `url-shortener`, Route `ecke.lt/~*` | ja (Cloudflare-Livedaten) | [landscape:inventory/raw/cloudflare.yaml:66-67; landscape:inventory/overlay.yaml:49-51] |
 | Custom Domain `kurz.ecke.lt` → Worker | ja | [landscape:inventory/raw/cloudflare.yaml:68; landscape:inventory/raw/cloudflare.yaml:103; landscape:inventory/overlay.yaml:67-79] |
 | Secret `AUTH_TOKEN`, Bindings `BASE_URL`, `URLS` (KV) | ja (nur Namen) | [landscape:inventory/raw/cloudflare.yaml:71-75] |
 | `workers.dev`-Subdomain des Workers | aktiviert | [landscape:inventory/raw/cloudflare.yaml:69] |
@@ -98,7 +98,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 
 ### Intern
 
-Keine. url-shortener nutzt keine anderen ecke.lt-Produkte und keine internen Libraries [landscape:inventory/raw/url-shortener.yaml:98-142]. Die Domain `ecke.lt` teilt es sich mit anderen Produkten: Die Route `*ecke.lt/~*` greift auf allen proxied Hosts der Zone ohne spezifischere Route (C6) [landscape:inventory/overlay.yaml:155-164].
+Keine. url-shortener nutzt keine anderen ecke.lt-Produkte und keine internen Libraries [landscape:inventory/raw/url-shortener.yaml:98-142]. Die Domain `ecke.lt` teilt es sich mit anderen Produkten: Die Route `ecke.lt/~*` greift auf allen proxied Hosts der Zone ohne spezifischere Route (C6) [landscape:inventory/overlay.yaml:155-164].
 
 ### Extern
 
@@ -113,7 +113,6 @@ Build-Werkzeuge (nur Entwicklung): `wrangler`, `typescript`, `@cloudflare/worker
 
 ## Bekannte Lücken
 
-- **Route zu weit (C6 → B4):** `*ecke.lt/~*` trifft nicht nur `ecke.lt`, sondern jeden proxied Host der Zone ohne eigene Route, z.B. `www.ecke.lt` und `book.ecke.lt` [worker/wrangler.toml:18-20; landscape:inventory/overlay.yaml:155-164]. Nicht beabsichtigt; der Wunsch steht im Backlog B4 [landscape:backlog.md:11].
 - **Übrige Pfade auf ecke.lt liefern 526 (C7 → B8):** Nur `/~*` geht an den Worker, nur exakt `https://ecke.lt/` wird auf nils.ecke.lt umgeleitet; andere Pfade und `www.ecke.lt` enden mit 526 [landscape:inventory/overlay.yaml:80-95; landscape:inventory/overlay.yaml:165-171]. Backlog B8 [landscape:backlog.md:15].
 - **Zufallscode ohne Kollisionsprüfung:** Kollidiert der Hash- oder Wunschcode mit einer anderen URL, wird ein Zufallscode erzeugt und ohne weitere Prüfung geschrieben; ein vorhandener Eintrag mit diesem Code würde überschrieben [worker/src/index.ts:160-166].
 - **Wunschcode wird still ersetzt:** Ist der gewünschte Code schon mit einer anderen URL belegt, antwortet die API ohne Fehler mit einem anderen, zufälligen Code [worker/src/index.ts:156-169].
