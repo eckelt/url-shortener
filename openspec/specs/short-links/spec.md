@@ -7,15 +7,15 @@ Weiterleitung von Kurzlinks `/~{code}` auf die gespeicherte Ziel-URL durch den C
 ## Requirements
 
 ### Requirement: Weiterleitung per Kurzcode
-Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit einer permanenten Weiterleitung (HTTP 301) auf die im KV-Namespace `URLS` unter dem Code gespeicherte URL beantworten [worker/src/index.ts:160-167; worker/wrangler.toml:12-13].
+Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit einer permanenten Weiterleitung (HTTP 301) auf die im KV-Namespace `URLS` unter dem Code gespeicherte URL beantworten [worker/src/index.ts:178-185; worker/wrangler.toml:12-13].
 
 #### Scenario: Bekannter Code
 - **WHEN** ein Browser `GET https://ecke.lt/~au5H` aufruft und in `URLS` ein Eintrag `au5H` existiert
-- **THEN** antwortet der Worker mit 301 und `Location` = gespeicherte URL [worker/src/index.ts:162-166]
+- **THEN** antwortet der Worker mit 301 und `Location` = gespeicherte URL [worker/src/index.ts:180-184]
 
 #### Scenario: Unbekannter oder leerer Code
 - **WHEN** der Code nach `/~` leer ist oder in `URLS` fehlt
-- **THEN** antwortet der Worker mit 404 und dem Text `Not found` [worker/src/index.ts:163-165]
+- **THEN** antwortet der Worker mit 404 und dem Text `Not found` [worker/src/index.ts:181-183]
 
 ### Requirement: Erreichbarkeit über Route und Custom Domain
 Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und zusätzlich über die Custom Domain `kurz.ecke.lt` annehmen [worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-68].
@@ -33,8 +33,8 @@ Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und z
 - **THEN** ist der Worker nicht beteiligt; `/` wird per Zonen-Regel auf nils.ecke.lt umgeleitet, andere Pfade liefern 526 [landscape:inventory/overlay.yaml:80-95]
 
 ### Requirement: Sonstige Anfragen
-Das System SHALL alle Anfragen, die weder `GET /`, `GET /~…` noch `POST /save` sind, mit 404 `Not found` beantworten [worker/src/index.ts:154-205].
+Das System SHALL alle Anfragen, die weder `GET /`, `GET /~…` noch `POST /save` sind, mit 404 `Not found` beantworten [worker/src/index.ts:172-223].
 
 #### Scenario: Unbekannter Pfad auf kurz.ecke.lt
 - **WHEN** `GET https://kurz.ecke.lt/Pattern` aufgerufen wird
-- **THEN** antwortet der Worker mit 404 [worker/src/index.ts:205]
+- **THEN** antwortet der Worker mit 404 [worker/src/index.ts:223]

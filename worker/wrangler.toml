@@ -1,5 +1,6 @@
 name = "url-shortener"
 main = "src/index.ts"
+
 compatibility_date = "2024-09-23"
 
 [vars]
@@ -22,3 +23,7 @@ zone_name = "ecke.lt"
 [[routes]]
 pattern = "kurz.ecke.lt"
 custom_domain = true
+
+# Hintergrund-Kacheln für die Web-Oberfläche (hell/dunkel), ausgeliefert vor dem Worker-Code
+[assets]
+directory = "./assets"

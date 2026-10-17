@@ -46,10 +46,28 @@ const HTML = `<!DOCTYPE html>
     <link rel="stylesheet" href="https://ecke-design-system.pages.dev/v1/styles.css">
     <title>URL-Shortener</title>
     <style>
+        body {
+            background: var(--bg) url("/bg-light.webp") repeat;
+            background-size: 500px;
+            min-height: 100vh;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-image: url("/bg-dark.webp");
+                background-size: 627px;
+            }
+        }
         .content {
+            background: var(--bg);
+            border: var(--border-hairline);
+            border-radius: var(--radius-lg);
+            box-sizing: border-box;
             margin: var(--space-8) auto;
             max-width: 28rem;
-            padding: 0 var(--space-4);
+            padding: var(--space-6);
+        }
+        @media (max-width: 30rem) {
+            .content { margin: var(--space-4); }
         }
         .field, .result {
             display: flex;
