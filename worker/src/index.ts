@@ -43,45 +43,78 @@ const HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://ecke-design-system.pages.dev/v1/styles.css">
     <title>URL-Shortener</title>
     <style>
-        body {
-            font-family: "Alegreya Sans", sans-serif;
-            height: 100vh;
-        }
         .content {
-            margin: 20vh auto;
-            width: 400px;
+            margin: var(--space-8) auto;
+            max-width: 28rem;
+            padding: 0 var(--space-4);
         }
-        @media only screen and (max-width: 600px) {
-            .content { width: 85vw; }
+        .field, .result {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+        label {
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            font-size: var(--text-sm);
+            gap: var(--space-1);
+        }
+        input {
+            background: var(--surface);
+            border: var(--border-hairline);
+            border-radius: var(--radius-lg);
+            box-sizing: border-box;
+            color: var(--text);
+            font: inherit;
+            padding: var(--space-2) var(--space-3);
+            width: 100%;
+        }
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: var(--ring-focus);
+            outline: none;
+        }
+        .ecke-button {
+            cursor: pointer;
+            font: inherit;
+            font-weight: var(--weight-medium);
+            width: 100%;
+        }
+        .result {
+            background: var(--surface);
+            border: var(--border-hairline);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-5);
+            padding: var(--space-4);
+        }
+        #result {
+            overflow-wrap: anywhere;
         }
     </style>
 </head>
 <body>
     <div class="content">
-        <figure class="accent" style="--mb:1.5rem; --w:100%">
-            <figcaption>
-                <label>URL
-                    <input id="txtUrl" name="url" type="text"
-                        placeholder="https://example.com/very/long?stuff=that&nobody=wants&to=read">
-                </label>
-                <label>Code
-                    <input id="txtCode" name="code" type="text" placeholder="(optional)">
-                </label>
-                <label>Token
-                    <input id="txtToken" name="token" type="password" placeholder="Auth-Token">
-                </label>
-                <button class="red" style="--w:100%" aria-label="Kürzen" onclick="save()">Kürzen</button>
-            </figcaption>
-        </figure>
-        <figure id="resultContainer" class="accent" style="--mb:1.5rem; --w:100%; display:none;">
-            <figcaption>
-                <span id="result"></span>
-                <button class="red" style="--w:100%; --mt:0.5rem" aria-label="Kopieren" onclick="copy()">In die Zwischenablage</button>
-            </figcaption>
-        </figure>
+        <div class="field">
+            <label>URL
+                <input id="txtUrl" name="url" type="text"
+                    placeholder="https://example.com/very/long?stuff=that&nobody=wants&to=read">
+            </label>
+            <label>Code
+                <input id="txtCode" name="code" type="text" placeholder="(optional)">
+            </label>
+            <label>Token
+                <input id="txtToken" name="token" type="password" placeholder="Auth-Token">
+            </label>
+            <button class="ecke-button" aria-label="Kürzen" onclick="save()">Kürzen</button>
+        </div>
+        <div id="resultContainer" class="result" style="display:none;">
+            <span id="result"></span>
+            <button class="ecke-button" aria-label="Kopieren" onclick="copy()">In die Zwischenablage</button>
+        </div>
     </div>
     <script>
         function save() {

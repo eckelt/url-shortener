@@ -39,7 +39,7 @@
           "protocol": "HTTPS Redirect (301)",
           "summary": "GET ecke.lt/~{code} und kurz.ecke.lt/~{code}: 301 auf die Ziel-URL, unbekannter Code → 404",
           "evidence": [
-            "worker/src/index.ts:127-134",
+            "worker/src/index.ts:160-167",
             "worker/wrangler.toml:18-20"
           ]
         },
@@ -50,7 +50,7 @@
           "protocol": "HTTPS JSON (Bearer-Token)",
           "summary": "POST kurz.ecke.lt/save {url, code?} → {url, code, error}; nur mit Bearer-Token (Secret AUTH_TOKEN)",
           "evidence": [
-            "worker/src/index.ts:136-170"
+            "worker/src/index.ts:169-203"
           ]
         },
         {
@@ -60,8 +60,8 @@
           "protocol": "HTTPS HTML",
           "summary": "GET kurz.ecke.lt/: Formular mit URL, optionalem Code und Token, ruft /save auf",
           "evidence": [
-            "worker/src/index.ts:41-113",
-            "worker/src/index.ts:121-125"
+            "worker/src/index.ts:41-146",
+            "worker/src/index.ts:153-158"
           ]
         },
         {
@@ -84,17 +84,17 @@
           "summary": "Binding URLS: Kurzcode → Ziel-URL; Weiterleitung liest, /save schreibt (Kollision → Zufallscode)",
           "evidence": [
             "worker/wrangler.toml:12-15",
-            "worker/src/index.ts:131",
-            "worker/src/index.ts:160-166"
+            "worker/src/index.ts:164",
+            "worker/src/index.ts:193-199"
           ]
         },
         {
-          "id": "bonsai-css",
+          "id": "design-system-styles",
           "direction": "consumes",
-          "contractRef": "unpkg:cdn@1",
+          "contractRef": "ecke-design-system:styles@1",
           "protocol": "HTTPS CSS",
           "relation": "imports",
-          "summary": "Formular lädt bonsai.css@latest von unpkg (im Browser)",
+          "summary": "Formular bindet /v1/styles.css von ecke-design-system ein (Tokens, Schriften, Grundstile, Button) statt bonsai.css von unpkg; Eingabefelder stylt der Worker selbst mit den Tokens",
           "evidence": [
             "worker/src/index.ts:46"
           ]
