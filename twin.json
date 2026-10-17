@@ -1,337 +1,141 @@
 {
-  "schemaVersion": 3,
-  "product": "url-shortener",
-  "repository": "eckelt/url-shortener",
-  "declared": {
+  "schemaVersion": 4,
+  "system": {
+    "id": "url-shortener",
     "name": "url-shortener",
-    "summary": "URL-Shortener für Kurzlinks https://ecke.lt/~{code}: Cloudflare Worker mit KV, Kürz-API und Web-Oberfläche auf kurz.ecke.lt. Geerbter Go/Docker-Teil ist Altlast im Repo, nicht in Betrieb (Landscape-Backlog B12).",
+    "summary": "Damit Links in Mails, Folien und Posts kurz bleiben: ecke.lt/~{code} leitet auf die Ziel-URL weiter.",
+    "repository": "eckelt/url-shortener",
     "managed": "oneshot",
     "visibility": "public",
-    "docs": [
-      "openspec/project.md",
-      "openspec/specs/short-links/spec.md",
-      "openspec/specs/link-creation/spec.md",
-      "openspec/specs/deploy/spec.md"
-    ],
-    "containers": [
-      {
-        "id": "worker",
-        "kind": "service",
-        "name": "Cloudflare Worker url-shortener",
-        "summary": "TypeScript-Worker: Kurzlink-Weiterleitung /~{code} (301), Kürz-API POST /save mit Bearer-Token (Secret AUTH_TOKEN), Web-Oberfläche auf kurz.ecke.lt; Speicher Cloudflare KV (Binding URLS). Live laut Cloudflare-Livedaten.",
-        "deployment": "Cloudflare Workers (Route ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
-        "visibility": "public",
-        "docs": [
-          "openspec/specs/short-links/spec.md",
-          "openspec/specs/link-creation/spec.md"
-        ],
-        "interfaces": [
-          {
-            "id": "short-links",
-            "direction": "provides",
-            "protocol": "HTTPS Redirect (301)",
-            "contractRef": "url-shortener:short-links@1",
-            "summary": "GET https://ecke.lt/~{code} (Route ecke.lt/~*) und https://kurz.ecke.lt/~{code}"
-          },
-          {
-            "id": "shorten-api",
-            "direction": "provides",
-            "protocol": "HTTPS JSON (Bearer-Token)",
-            "contractRef": "url-shortener:shorten-api@1",
-            "summary": "POST https://kurz.ecke.lt/save {url, code?} -> {url, code, error}"
-          },
-          {
-            "id": "web-ui",
-            "direction": "provides",
-            "protocol": "HTTPS HTML",
-            "contractRef": "url-shortener:web-ui@1",
-            "summary": "GET https://kurz.ecke.lt/ (Formular URL/Code/Token)"
-          },
-          {
-            "id": "workers-runtime",
-            "direction": "consumes",
-            "protocol": "Cloudflare Workers",
-            "contractRef": "cloudflare-workers:runtime@1",
-            "summary": "Worker url-shortener, Route ecke.lt/~*, Custom Domain kurz.ecke.lt"
-          },
-          {
-            "id": "kv-urls",
-            "direction": "consumes",
-            "protocol": "Workers KV Binding",
-            "contractRef": "cloudflare-kv:kv@1",
-            "summary": "KV-Binding URLS (Code -> Ziel-URL)"
-          },
-          {
-            "id": "bonsai-css",
-            "direction": "consumes",
-            "protocol": "HTTPS CSS",
-            "contractRef": "unpkg:cdn@1",
-            "summary": "https://unpkg.com/bonsai.css@latest/dist/bonsai.min.css (im Browser)"
-          }
-        ]
-      },
-      {
-        "id": "deploy-worker",
-        "kind": "service",
-        "name": "Worker-Deploy-Workflow",
-        "summary": ".github/workflows/deploy.yml: bei Push auf main/master mit Änderungen unter worker/** npm ci, typecheck, wrangler deploy. Secrets (nur Namen): CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID.",
-        "deployment": "GitHub Actions (ubuntu-latest)",
-        "docs": [
-          "openspec/specs/deploy/spec.md"
-        ],
-        "interfaces": [
-          {
-            "id": "actions",
-            "direction": "consumes",
-            "protocol": "GitHub Actions",
-            "contractRef": "github-actions:workflows@1",
-            "summary": "Runner ubuntu-latest, actions/checkout@v4, actions/setup-node@v4"
-          },
-          {
-            "id": "workers-deploy",
-            "direction": "consumes",
-            "protocol": "Cloudflare API (wrangler deploy)",
-            "contractRef": "cloudflare-workers:deploy-api@1",
-            "summary": "npm run deploy = wrangler deploy; Secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID"
-          }
-        ]
-      }
-    ],
-    "contracts": [
-      {
-        "id": "url-shortener:short-links@1",
-        "producer": "url-shortener",
-        "consumers": [],
-        "version": "1"
-      },
-      {
-        "id": "url-shortener:shorten-api@1",
-        "producer": "url-shortener",
-        "consumers": [],
-        "version": "1"
-      },
-      {
-        "id": "url-shortener:web-ui@1",
-        "producer": "url-shortener",
-        "consumers": [],
-        "version": "1"
-      }
-    ],
-    "externals": [
-      {
-        "id": "cloudflare-workers",
-        "vendor": "Cloudflare",
-        "category": "hosting",
-        "consoleUrl": "https://dash.cloudflare.com",
-        "interfaces": [
-          {
-            "id": "runtime",
-            "protocol": "Cloudflare Workers",
-            "contractRef": "cloudflare-workers:runtime@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          },
-          {
-            "id": "deploy-api",
-            "protocol": "Cloudflare API (wrangler deploy)",
-            "contractRef": "cloudflare-workers:deploy-api@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
-      },
-      {
-        "id": "cloudflare-kv",
-        "vendor": "Cloudflare",
-        "category": "platform",
-        "consoleUrl": "https://dash.cloudflare.com",
-        "interfaces": [
-          {
-            "id": "kv",
-            "protocol": "Workers KV Binding",
-            "contractRef": "cloudflare-kv:kv@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
-      },
-      {
-        "id": "unpkg",
-        "vendor": "unpkg",
-        "category": "other",
-        "docsUrl": "https://unpkg.com",
-        "interfaces": [
-          {
-            "id": "cdn",
-            "protocol": "HTTPS",
-            "contractRef": "unpkg:cdn@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
-      },
-      {
-        "id": "github-actions",
-        "vendor": "GitHub",
-        "category": "vcs",
-        "consoleUrl": "https://github.com/eckelt",
-        "interfaces": [
-          {
-            "id": "workflows",
-            "protocol": "GitHub Actions",
-            "contractRef": "github-actions:workflows@1",
-            "consumers": [
-              "url-shortener"
-            ]
-          }
-        ]
-      }
+    "asOf": "57e6f538a2a9e58696ea6dda2e9c79635f581cff",
+    "specs": [
+      "short-links",
+      "link-creation",
+      "deploy"
     ]
   },
-  "derived": {
-    "provenance": {
-      "source": "declared",
-      "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-      "at": "2026-09-27T00:00:00Z"
+  "containers": [
+    {
+      "id": "worker",
+      "name": "Cloudflare Worker url-shortener",
+      "kind": "service",
+      "technology": "TypeScript, Cloudflare Workers",
+      "summary": "Leitet Kurzlinks weiter und legt über Formular oder API neue Kurzlinks an.",
+      "path": "worker/",
+      "deployment": "Cloudflare Workers (Route ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
+      "visibility": "public",
+      "specs": [
+        "short-links",
+        "link-creation"
+      ],
+      "evidence": [
+        "worker/wrangler.toml:17-24"
+      ],
+      "interfaces": [
+        {
+          "id": "short-links",
+          "direction": "provides",
+          "contractRef": "url-shortener:short-links@1",
+          "protocol": "HTTPS Redirect (301)",
+          "summary": "GET ecke.lt/~{code} und kurz.ecke.lt/~{code}: 301 auf die Ziel-URL, unbekannter Code → 404",
+          "evidence": [
+            "worker/src/index.ts:127-134",
+            "worker/wrangler.toml:18-20"
+          ]
+        },
+        {
+          "id": "shorten-api",
+          "direction": "provides",
+          "contractRef": "url-shortener:shorten-api@1",
+          "protocol": "HTTPS JSON (Bearer-Token)",
+          "summary": "POST kurz.ecke.lt/save {url, code?} → {url, code, error}; nur mit Bearer-Token (Secret AUTH_TOKEN)",
+          "evidence": [
+            "worker/src/index.ts:136-170"
+          ]
+        },
+        {
+          "id": "web-ui",
+          "direction": "provides",
+          "contractRef": "url-shortener:web-ui@1",
+          "protocol": "HTTPS HTML",
+          "summary": "GET kurz.ecke.lt/: Formular mit URL, optionalem Code und Token, ruft /save auf",
+          "evidence": [
+            "worker/src/index.ts:41-113",
+            "worker/src/index.ts:121-125"
+          ]
+        },
+        {
+          "id": "workers-runtime",
+          "direction": "consumes",
+          "contractRef": "cloudflare-workers:runtime@1",
+          "protocol": "Cloudflare Workers",
+          "relation": "deploys-to",
+          "summary": "Worker url-shortener, Route ecke.lt/~*, Custom Domain kurz.ecke.lt",
+          "evidence": [
+            "worker/wrangler.toml:1-3",
+            "worker/wrangler.toml:17-24"
+          ]
+        },
+        {
+          "id": "kv-urls",
+          "direction": "consumes",
+          "contractRef": "cloudflare-kv:kv@1",
+          "protocol": "Workers KV Binding",
+          "summary": "Binding URLS: Kurzcode → Ziel-URL; Weiterleitung liest, /save schreibt (Kollision → Zufallscode)",
+          "evidence": [
+            "worker/wrangler.toml:12-15",
+            "worker/src/index.ts:131",
+            "worker/src/index.ts:160-166"
+          ]
+        },
+        {
+          "id": "bonsai-css",
+          "direction": "consumes",
+          "contractRef": "unpkg:cdn@1",
+          "protocol": "HTTPS CSS",
+          "relation": "imports",
+          "summary": "Formular lädt bonsai.css@latest von unpkg (im Browser)",
+          "evidence": [
+            "worker/src/index.ts:46"
+          ]
+        }
+      ]
     },
-    "nodes": [
-      {
-        "id": "url-shortener",
-        "level": "product",
-        "kind": "product",
-        "name": "url-shortener",
-        "summary": "URL-Shortener für ecke.lt/~{code}: Cloudflare Worker mit KV (live). Geerbter Go/Docker-Teil ist Altlast im Repo, nicht in Betrieb (Landscape-Backlog B12).",
-        "repository": "eckelt/url-shortener",
-        "visibility": "public",
-        "managed": "oneshot",
-        "docs": [
-          "openspec/project.md",
-          "openspec/specs/short-links/spec.md",
-          "openspec/specs/link-creation/spec.md",
-          "openspec/specs/deploy/spec.md"
-        ],
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      },
-      {
-        "id": "url-shortener/worker",
-        "level": "container",
-        "kind": "service",
-        "name": "Cloudflare Worker url-shortener",
-        "path": "worker/src/index.ts",
-        "visibility": "public",
-        "interfaces": [
-          {
-            "id": "short-links",
-            "direction": "provides",
-            "protocol": "HTTPS Redirect (301)",
-            "contractRef": "url-shortener:short-links@1"
-          },
-          {
-            "id": "shorten-api",
-            "direction": "provides",
-            "protocol": "HTTPS JSON (Bearer-Token)",
-            "contractRef": "url-shortener:shorten-api@1"
-          },
-          {
-            "id": "web-ui",
-            "direction": "provides",
-            "protocol": "HTTPS HTML",
-            "contractRef": "url-shortener:web-ui@1"
-          },
-          {
-            "id": "workers-runtime",
-            "direction": "consumes",
-            "protocol": "Cloudflare Workers",
-            "contractRef": "cloudflare-workers:runtime@1"
-          },
-          {
-            "id": "kv-urls",
-            "direction": "consumes",
-            "protocol": "Workers KV Binding",
-            "contractRef": "cloudflare-kv:kv@1"
-          },
-          {
-            "id": "bonsai-css",
-            "direction": "consumes",
-            "protocol": "HTTPS CSS",
-            "contractRef": "unpkg:cdn@1"
-          }
-        ],
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      },
-      {
-        "id": "url-shortener/deploy-worker",
-        "level": "container",
-        "kind": "service",
-        "name": "Worker-Deploy-Workflow",
-        "path": ".github/workflows/deploy.yml",
-        "interfaces": [
-          {
-            "id": "actions",
-            "direction": "consumes",
-            "protocol": "GitHub Actions",
-            "contractRef": "github-actions:workflows@1"
-          },
-          {
-            "id": "workers-deploy",
-            "direction": "consumes",
-            "protocol": "Cloudflare API (wrangler deploy)",
-            "contractRef": "cloudflare-workers:deploy-api@1"
-          }
-        ],
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      }
-    ],
-    "edges": [
-      {
-        "id": "url-shortener/worker=>external/cloudflare-workers:deploys-to",
-        "from": "url-shortener/worker",
-        "to": "external/cloudflare-workers",
-        "perspective": "deployment",
-        "kind": "deploys-to",
-        "protocol": "HTTPS",
-        "attributes": {
-          "evidence": "worker/wrangler.toml:1-24; landscape:inventory/raw/cloudflare.yaml:66-76"
+    {
+      "id": "deploy-worker",
+      "name": "Worker-Deploy-Workflow",
+      "kind": "pipeline",
+      "technology": "GitHub Actions",
+      "summary": "Prüft die Typen und deployt den Worker bei jedem Push mit Änderungen unter worker/.",
+      "path": ".github/workflows/deploy.yml",
+      "deployment": "GitHub Actions (ubuntu-latest)",
+      "specs": [
+        "deploy"
+      ],
+      "interfaces": [
+        {
+          "id": "actions",
+          "direction": "consumes",
+          "contractRef": "github-actions:workflows@1",
+          "protocol": "GitHub Actions",
+          "summary": "Runner ubuntu-latest, actions/checkout@v7, actions/setup-node@v7 (Node 22)",
+          "evidence": [
+            ".github/workflows/deploy.yml:1-19"
+          ]
         },
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
+        {
+          "id": "workers-deploy",
+          "direction": "consumes",
+          "contractRef": "cloudflare-workers:deploy-api@1",
+          "protocol": "Cloudflare API (wrangler deploy)",
+          "relation": "writes",
+          "perspective": "deployment",
+          "summary": "npm run deploy = wrangler deploy; Secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID",
+          "evidence": [
+            ".github/workflows/deploy.yml:21-34"
+          ]
         }
-      },
-      {
-        "id": "url-shortener/deploy-worker=>external/cloudflare-workers:writes",
-        "from": "url-shortener/deploy-worker",
-        "to": "external/cloudflare-workers",
-        "perspective": "deployment",
-        "kind": "writes",
-        "protocol": "Cloudflare API (wrangler deploy)",
-        "attributes": {
-          "evidence": ".github/workflows/deploy.yml:29-34"
-        },
-        "provenance": {
-          "source": "declared",
-          "commit": "65d71f9b03ba7500de9fc79595dcc7c61bb4fd70",
-          "at": "2026-09-27T00:00:00Z"
-        }
-      }
-    ],
-    "violations": []
-  }
+      ]
+    }
+  ]
 }

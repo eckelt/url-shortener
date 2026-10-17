@@ -24,9 +24,9 @@ Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und z
 - **WHEN** eine Anfrage auf `https://ecke.lt/~{code}` eingeht
 - **THEN** leitet Cloudflare sie an den Worker `url-shortener` weiter [worker/wrangler.toml:18-20; landscape:inventory/overlay.yaml:49-51]
 
-#### Scenario: Aufruf über andere proxied Hosts der Zone
-- **WHEN** eine Anfrage auf `/~{code}` an einem proxied Host der Zone ohne spezifischere Route eingeht (z.B. `www.ecke.lt`, `book.ecke.lt`)
-- **THEN** bearbeitet ebenfalls der Worker `url-shortener` sie [landscape:inventory/overlay.yaml:155-164]
+#### Scenario: Aufruf über andere Hosts der Zone
+- **WHEN** eine Anfrage auf `/~{code}` an einem anderen Host der Zone als `ecke.lt` oder `kurz.ecke.lt` eingeht (z.B. `www.ecke.lt`, `book.ecke.lt`)
+- **THEN** ist der Worker `url-shortener` nicht beteiligt; die Route gilt nur für den Apex `ecke.lt` [worker/wrangler.toml:18-20]
 
 #### Scenario: Andere Pfade auf ecke.lt
 - **WHEN** eine Anfrage auf `https://ecke.lt/` oder einen Pfad ohne `/~` eingeht

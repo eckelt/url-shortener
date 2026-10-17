@@ -4,7 +4,7 @@
 - **Repo:** git@github.com:eckelt/url-shortener.git, Branch `master`; GitHub-Fork von `jhaals/url-shortener` [landscape:inventory/raw/url-shortener.yaml:2-4; landscape:inventory/raw/url-shortener.yaml:7-8]
 - **Stand der Aussagen:** Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` [landscape:inventory/raw/url-shortener.yaml:3], aufgenommen am 2026-09-27
 - **managed:** `oneshot` (einmalige Ist-Aufnahme von Hand, kein automatischer Abgleich)
-- **Architektur-Manifest:** `twin.json` (Schema: ecke-lt-landscape `schema/twin.schema.json`, v3)
+- **Architektur-Manifest:** `twin.json` (Schema: ecke-lt-landscape `schema/manifest.v4.schema.json`, v4)
 
 Alle Fundstellen `[datei:zeile]` beziehen sich auf den genannten Commit und sind relativ zum Repo-Root. `[landscape:…]` verweist auf das Repo ecke-lt-landscape. Konventionen: `landscape:CONVENTIONS.md`.
 Zusätzlich verwendet dieser Text `[git log: …]` für Aussagen über die Commit-Historie dieses Repos (prüfbar mit `git log --follow --format='%h %an %cs %s' -- <datei>`).
@@ -98,7 +98,7 @@ Bekannte Nutzer: ein iOS-Kurzbefehl ruft die Kürz-API auf (Anleitung in der REA
 
 ### Intern
 
-Keine. url-shortener nutzt keine anderen ecke.lt-Produkte und keine internen Libraries [landscape:inventory/raw/url-shortener.yaml:98-142]. Die Domain `ecke.lt` teilt es sich mit anderen Produkten: Die Route `ecke.lt/~*` greift auf allen proxied Hosts der Zone ohne spezifischere Route (C6) [landscape:inventory/overlay.yaml:155-164].
+Keine. url-shortener nutzt keine anderen ecke.lt-Produkte und keine internen Libraries [landscape:inventory/raw/url-shortener.yaml:98-142]. Die Domain `ecke.lt` teilt es sich mit anderen Produkten: Die Route `ecke.lt/~*` greift nur auf dem Apex `ecke.lt`, andere Hosts der Zone erreichen den Worker nicht (bis B4 `*ecke.lt/~*`, C6) [worker/wrangler.toml:18-20].
 
 ### Extern
 
