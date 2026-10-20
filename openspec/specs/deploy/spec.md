@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `e0f3491e9382018786f7a25fb2ca9dac8b1aef90` (Landscape-Inventur 2026-09-27, Fundstellen geprüft 2026-10-20); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
 
 **Hinweis (kein Requirement):** Der geerbte Workflow `.github/workflows/docker-publish.yml` läuft weiterhin bei jedem Push auf `master` und bei Tags `v*` (Go-Tests, `docker build`, Push nach `docker.pkg.github.com/<repository>/server`) [.github/workflows/docker-publish.yml:3-17; .github/workflows/docker-publish.yml:22-78]. Er gehört zum Go/Docker-Teil, der Altlast im Repo und nicht in Betrieb ist [Nutzer-Auskunft 2026-09-27]; Entfernung: Landscape-Backlog B12 [landscape:backlog.md:20].
 
@@ -20,7 +20,7 @@ Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `wor
 - **THEN** startet kein Worker-Deploy [.github/workflows/deploy.yml:3-7]
 
 ### Requirement: Infrastruktur aus wrangler.toml
-Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/~*` und die Custom Domain `kurz.ecke.lt` aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt [worker/wrangler.toml:1-24; README.md:38-56].
+Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/~*`, die Custom Domain `kurz.ecke.lt` und die Static Assets aus `worker/assets` (`[assets]`) aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt [worker/wrangler.toml:1-29; README.md:38-56].
 
 #### Scenario: Live-Konfiguration
 - **WHEN** die Cloudflare-Konfiguration des Workers `url-shortener` abgefragt wird
