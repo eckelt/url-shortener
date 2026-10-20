@@ -139,6 +139,38 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ci-twin-check",
+      "name": "Workflow Twin prüfen",
+      "kind": "pipeline",
+      "technology": "GitHub Actions",
+      "summary": "Prüft bei jedem Push und PR auf Drift; sperrt nur die als ausgereift benannten Bereiche, sonst meldet er.",
+      "path": ".github/workflows/twin-check.yml",
+      "deployment": "GitHub Actions (ubuntu-latest)",
+      "specs": [
+        "deploy"
+      ],
+      "interfaces": [
+        {
+          "id": "actions",
+          "direction": "consumes",
+          "contractRef": "github-actions:workflows@1",
+          "protocol": "GitHub Actions",
+          "summary": "push auf master, pull_request, workflow_call; Eingaben sperren/aus (Container-ids); Branches spike/** nur melden; Trailer Drift-Ok; Secret TWIN_READ_TOKEN"
+        },
+        {
+          "id": "twin-check",
+          "direction": "consumes",
+          "contractRef": "ecke-lt-landscape:twin-check@1",
+          "protocol": "CLI",
+          "relation": "calls",
+          "summary": "checkt eckelt/ecke-lt-landscape aus und ruft scripts/twin-check url-shortener=. --basis <before>"
+        }
+      ],
+      "adrs": [
+        "docs/adr/2026-10-20-drift-sperrt.md"
+      ]
     }
   ],
   "flows": [
