@@ -140,5 +140,69 @@
         }
       ]
     }
+  ],
+  "flows": [
+    {
+      "id": "kurzlink-oeffnen",
+      "name": "Kurzlink öffnen",
+      "spec": "short-links",
+      "summary": "Besucher öffnet ecke.lt/~code und wird auf die Ziel-URL weitergeleitet.",
+      "steps": [
+        {
+          "from": "actor/besucher",
+          "to": "url-shortener/worker",
+          "contractRef": "url-shortener:short-links@1",
+          "text": "Öffnet ecke.lt/~<code> (oder kurz.ecke.lt/~<code>) aus einer Mail, Folie oder einem Post",
+          "evidence": [
+            "worker/src/index.ts:178-180"
+          ]
+        },
+        {
+          "from": "url-shortener/worker",
+          "to": "external/cloudflare-kv",
+          "contractRef": "cloudflare-kv:kv@1",
+          "text": "Liest die Ziel-URL zum Code (Binding URLS); gefunden → 301 auf die Ziel-URL, sonst 404",
+          "evidence": [
+            "worker/src/index.ts:182-184"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kurzlink-anlegen",
+      "name": "Kurzlink anlegen",
+      "spec": "link-creation",
+      "summary": "Der Inhaber legt über das Formular auf kurz.ecke.lt einen Kurzlink an; der Code landet in KV.",
+      "steps": [
+        {
+          "from": "actor/nils",
+          "to": "url-shortener/worker",
+          "contractRef": "url-shortener:web-ui@1",
+          "text": "Öffnet kurz.ecke.lt und trägt Ziel-URL, optional einen Code und das Token ein",
+          "evidence": [
+            "worker/src/index.ts:172-176"
+          ]
+        },
+        {
+          "from": "actor/nils",
+          "to": "url-shortener/worker",
+          "contractRef": "url-shortener:shorten-api@1",
+          "text": "Das Formular schickt POST /save {url, code?} mit Bearer-Token; falsches Token → 401",
+          "evidence": [
+            "worker/src/index.ts:138-143",
+            "worker/src/index.ts:188-191"
+          ]
+        },
+        {
+          "from": "url-shortener/worker",
+          "to": "external/cloudflare-kv",
+          "contractRef": "cloudflare-kv:kv@1",
+          "text": "Prüft, ob der Code schon belegt ist (dann Zufallscode), und speichert Code → Ziel-URL",
+          "evidence": [
+            "worker/src/index.ts:212-217"
+          ]
+        }
+      ]
+    }
   ]
 }
