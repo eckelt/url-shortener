@@ -7,7 +7,7 @@ Weiterleitung von Kurzlinks `/~{code}` auf die gespeicherte Ziel-URL durch den C
 ## Requirements
 
 ### Requirement: Weiterleitung per Kurzcode
-Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit einer permanenten Weiterleitung (HTTP 301) auf die im KV-Namespace `URLS` unter dem Code gespeicherte URL beantworten [worker/src/index.ts:178-185; worker/wrangler.toml:12-13].
+Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit einer permanenten Weiterleitung (HTTP 301) auf die im KV-Namespace `URLS` unter dem Code gespeicherte URL beantworten [worker/src/index.ts:178-185; worker/wrangler.toml:13-14].
 
 #### Scenario: Bekannter Code
 - **WHEN** ein Browser `GET https://ecke.lt/~au5H` aufruft und in `URLS` ein Eintrag `au5H` existiert
@@ -18,15 +18,15 @@ Das System SHALL eine GET-Anfrage auf einen Pfad, der mit `/~` beginnt, mit eine
 - **THEN** antwortet der Worker mit 404 und dem Text `Not found` [worker/src/index.ts:181-183]
 
 ### Requirement: Erreichbarkeit über Route und Custom Domain
-Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und zusätzlich über die Custom Domain `kurz.ecke.lt` annehmen [worker/wrangler.toml:18-24; landscape:inventory/raw/cloudflare.yaml:66-68].
+Das System SHALL Kurzlinks über die Route `ecke.lt/~*` der Zone `ecke.lt` und zusätzlich über die Custom Domain `kurz.ecke.lt` annehmen [worker/wrangler.toml:19-25; landscape:inventory/raw/cloudflare.yaml:66-68].
 
 #### Scenario: Aufruf über ecke.lt
 - **WHEN** eine Anfrage auf `https://ecke.lt/~{code}` eingeht
-- **THEN** leitet Cloudflare sie an den Worker `url-shortener` weiter [worker/wrangler.toml:18-20; landscape:inventory/overlay.yaml:49-51]
+- **THEN** leitet Cloudflare sie an den Worker `url-shortener` weiter [worker/wrangler.toml:19-21; landscape:inventory/overlay.yaml:49-51]
 
 #### Scenario: Aufruf über andere Hosts der Zone
 - **WHEN** eine Anfrage auf `/~{code}` an einem anderen Host der Zone als `ecke.lt` oder `kurz.ecke.lt` eingeht (z.B. `www.ecke.lt`, `book.ecke.lt`)
-- **THEN** ist der Worker `url-shortener` nicht beteiligt; die Route gilt nur für den Apex `ecke.lt` [worker/wrangler.toml:18-20]
+- **THEN** ist der Worker `url-shortener` nicht beteiligt; die Route gilt nur für den Apex `ecke.lt` [worker/wrangler.toml:19-21]
 
 #### Scenario: Andere Pfade auf ecke.lt
 - **WHEN** eine Anfrage auf `https://ecke.lt/` oder einen Pfad ohne `/~` eingeht

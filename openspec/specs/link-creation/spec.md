@@ -7,7 +7,7 @@ Anlegen von Kurzlinks über die API `POST /save` und die Web-Oberfläche unter `
 ## Requirements
 
 ### Requirement: Kürz-API
-Das System SHALL auf `POST /save` einen JSON-Body `{url, code?}` annehmen, den Eintrag `code → url` im KV-Namespace `URLS` speichern und JSON `{url, code, error}` zurückgeben, wobei `url` = `BASE_URL` + `/~` + Code ist [worker/src/index.ts:187-221; worker/wrangler.toml:5-6].
+Das System SHALL auf `POST /save` einen JSON-Body `{url, code?}` annehmen, den Eintrag `code → url` im KV-Namespace `URLS` speichern und JSON `{url, code, error}` zurückgeben, wobei `url` = `BASE_URL` + `/~` + Code ist [worker/src/index.ts:187-221; worker/wrangler.toml:6-7].
 
 #### Scenario: Erfolgreiches Kürzen
 - **WHEN** ein berechtigter Client `{"url": "https://example.com/lang"}` an `https://kurz.ecke.lt/save` sendet
@@ -48,11 +48,11 @@ Das System SHALL einen Wunschcode ab zwei Zeichen übernehmen und sonst die erst
 - **THEN** speichert der Worker unter einem Zufallscode, ohne diesen erneut auf Belegung zu prüfen, und meldet keinen Fehler [worker/src/index.ts:211-220]
 
 ### Requirement: Web-Oberfläche
-Das System SHALL auf `GET /` eine HTML-Seite mit den Feldern URL, Code und Token ausliefern, die per `fetch('/save')` kürzt und das Ergebnis mit Kopier-Knopf anzeigt [worker/src/index.ts:41-164]. Die Seite bindet `https://ecke-design-system.pages.dev/v1/styles.css` (`ecke-design-system:styles@1`) ein und lädt kein Stylesheet von Dritten; Knöpfe nutzen die Button-Komponente des Design-Systems, Labels und Eingabefelder stylt die Seite selbst ausschließlich mit Tokens (`var(--…)`) des Design-Systems [worker/src/index.ts:46-109].
+Das System SHALL auf `GET /` eine HTML-Seite mit den Feldern URL, Code und Token ausliefern, die per `fetch('/save')` kürzt und das Ergebnis mit Kopier-Knopf anzeigt [worker/src/index.ts:41-164]. Die Seite bindet `https://ecke-design-system.pages.dev/v1/styles.css` (`ecke-design-system:styles@1`) ein und lädt kein Stylesheet von Dritten; Knöpfe nutzen die Button-Komponente des Design-Systems, Labels und Eingabefelder stylt die Seite selbst ausschließlich mit Tokens (`var(--…)`) des Design-Systems [worker/src/index.ts:46-115].
 
 #### Scenario: Aufruf der Oberfläche
 - **WHEN** ein Browser `https://kurz.ecke.lt/` öffnet
-- **THEN** liefert der Worker die Seite mit `Content-Type: text/html;charset=UTF-8` [worker/src/index.ts:171-176; worker/wrangler.toml:22-24]
+- **THEN** liefert der Worker die Seite mit `Content-Type: text/html;charset=UTF-8` [worker/src/index.ts:172-176; worker/wrangler.toml:23-25]
 
 #### Scenario: Kürzen über die Oberfläche
 - **WHEN** der Nutzer URL und Token einträgt und „Kürzen“ klickt
