@@ -7,6 +7,7 @@
     "repository": "eckelt/url-shortener",
     "managed": "oneshot",
     "visibility": "public",
+    "url": "https://kurz.ecke.lt/",
     "asOf": "57e6f538a2a9e58696ea6dda2e9c79635f581cff",
     "specs": [
       "short-links",
@@ -23,6 +24,7 @@
       "summary": "Leitet Kurzlinks weiter und legt über Formular oder API neue Kurzlinks an.",
       "path": "worker/",
       "deployment": "Cloudflare Workers (Route ecke.lt/~* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
+      "url": "https://kurz.ecke.lt/",
       "visibility": "public",
       "specs": [
         "short-links",
