@@ -94,7 +94,7 @@
           "contractRef": "ecke-design-system:styles@1",
           "protocol": "HTTPS CSS",
           "relation": "imports",
-          "summary": "Formular bindet /v1/styles.css von ecke-design-system ein (Tokens, Schriften, Grundstile, Button) statt bonsai.css von unpkg; Eingabefelder stylt der Worker selbst mit den Tokens",
+          "summary": "Bindet /v1/styles.css des Design Systems statt bonsai.css von unpkg ein; Eingabefelder stylt der Worker mit Tokens",
           "evidence": [
             "worker/src/index.ts:46-115"
           ]
