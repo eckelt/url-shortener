@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://design.ecke.lt/v1/styles.css">
+    <title>Mock: Ergebnis mit QR-Schreibweise (390 px)</title>
+    <style>
+        body {
+            background: var(--bg) url("https://kurz.ecke.lt/bg-light.webp") repeat;
+            background-size: 500px;
+            min-height: 100vh;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-image: url("https://kurz.ecke.lt/bg-dark.webp");
+                background-size: 627px;
+            }
+        }
+        .content {
+            background: var(--bg);
+            border: var(--border-hairline);
+            border-radius: var(--radius-lg);
+            box-sizing: border-box;
+            margin: var(--space-8) auto;
+            max-width: 28rem;
+            padding: var(--space-6);
+        }
+        @media (max-width: 30rem) {
+            .content { margin: var(--space-4); }
+        }
+        .field, .result {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+        label {
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            font-size: var(--text-sm);
+            gap: var(--space-1);
+        }
+        input {
+            background: var(--surface);
+            border: var(--border-hairline);
+            border-radius: var(--radius-lg);
+            box-sizing: border-box;
+            color: var(--text);
+            font: inherit;
+            padding: var(--space-2) var(--space-3);
+            width: 100%;
+        }
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: var(--ring-focus);
+            outline: none;
+        }
+        .ecke-button {
+            cursor: pointer;
+            font: inherit;
+            font-weight: var(--weight-medium);
+            width: 100%;
+        }
+        .result {
+            background: var(--surface);
+            border: var(--border-hairline);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-5);
+            padding: var(--space-4);
+        }
+        .row { display: flex; flex-direction: column; gap: var(--space-2); }
+        .row + .row { border-top: var(--border-hairline); padding-top: var(--space-4); }
+        .row-label { color: var(--muted); font-size: var(--text-sm); }
+        .row-value { overflow-wrap: anywhere; font-family: var(--font-mono, monospace); }
+        .result .ecke-button { width: auto; align-self: flex-start; }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="field">
+            <label>URL
+                <input id="txtUrl" type="text" value="https://example.com/vortrag/folien-und-material?jahr=2026">
+            </label>
+            <label>Code
+                <input id="txtCode" type="text" value="Hallo">
+            </label>
+            <label>Token
+                <input id="txtToken" type="password" value="xxxxxxxxxx">
+            </label>
+            <button class="ecke-button" aria-label="Kürzen">Kürzen</button>
+        </div>
+        <div id="resultContainer" class="result">
+            <div class="row">
+                <span class="row-label">Zum Teilen</span>
+                <span class="row-value" id="result">https://ecke.lt/Hallo</span>
+                <button class="ecke-button" aria-label="Kurzlink kopieren">Kopieren</button>
+            </div>
+            <div class="row">
+                <span class="row-label">Für QR-Codes (alles groß, kleinerer Code)</span>
+                <span class="row-value" id="resultQr">HTTPS://ECKE.LT/HALLO</span>
+                <button class="ecke-button" aria-label="QR-Schreibweise kopieren">Kopieren</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

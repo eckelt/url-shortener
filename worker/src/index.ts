@@ -5,7 +5,17 @@ export interface Env {
 }
 
 const CODE_LENGTH = 4;
-const CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+// Neue Codes: nur QR-Alphanumerik (0-9A-Z), mindestens ein Buchstabe.
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+// Pfade, die wie Codes aussehen, aber keine sein dürfen (ADR 2026-10-29-kurzlinks-fuer-qr-codes).
+export const RESERVED = new Set(['SAVE']);
+const HOME = 'https://nils.ecke.lt';
+const APEX = 'ecke.lt';
+
+const CODE_PATH = /^\/([A-Za-z0-9]{2,32})$/;
+const WISH_CODE = /^[A-Za-z0-9]{2,32}$/;
+const HAS_LETTER = /[A-Za-z]/;
 
 async function sha256Short(url: string, length: number): Promise<string> {
   const data = new TextEncoder().encode(url);
@@ -13,13 +23,29 @@ async function sha256Short(url: string, length: number): Promise<string> {
   const hashHex = Array.from(new Uint8Array(hashBuffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-  return hashHex.slice(0, length);
+  return hashHex.slice(0, length).toUpperCase();
 }
 
 function randomCode(length: number): string {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-  return Array.from(array).map(b => CHARS[b % CHARS.length]).join('');
+  const chars = Array.from(array).map(b => CHARS[b % CHARS.length]);
+  if (!chars.some(c => LETTERS.includes(c))) {
+    chars[array[0] % length] = LETTERS[array[0] % LETTERS.length];
+  }
+  return chars.join('');
+}
+
+async function freeRandomCode(env: Env): Promise<string> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const code = randomCode(CODE_LENGTH + Math.floor(attempt / 5));
+    if ((await env.URLS.get(code)) === null) return code;
+  }
+  throw new Error('Kein freier Code gefunden');
+}
+
+export function isValidWishCode(code: string): boolean {
+  return WISH_CODE.test(code) && HAS_LETTER.test(code) && !RESERVED.has(code.toUpperCase());
 }
 
 function isValidURL(str: string): boolean {
@@ -36,6 +62,17 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+function redirectHome(status: 301 | 302): Response {
+  return Response.redirect(HOME, status);
+}
+
+/** Erst die erste, dann die zweite Schreibweise in URLS nachschlagen. */
+async function lookup(env: Env, first: string, second: string): Promise<string | null> {
+  const hit = await env.URLS.get(first);
+  if (hit !== null || first === second) return hit;
+  return env.URLS.get(second);
 }
 
 const HTML = `<!DOCTYPE html>
@@ -109,9 +146,11 @@ const HTML = `<!DOCTYPE html>
             margin-top: var(--space-5);
             padding: var(--space-4);
         }
-        #result {
-            overflow-wrap: anywhere;
-        }
+        .row { display: flex; flex-direction: column; gap: var(--space-2); }
+        .row + .row { border-top: var(--border-hairline); padding-top: var(--space-4); }
+        .row-label { color: var(--muted); font-size: var(--text-sm); }
+        .row-value { overflow-wrap: anywhere; font-family: var(--font-mono, monospace); }
+        .result .ecke-button { width: auto; align-self: flex-start; }
     </style>
 </head>
 <body>
@@ -130,8 +169,17 @@ const HTML = `<!DOCTYPE html>
             <button class="ecke-button" aria-label="Kürzen" onclick="save()">Kürzen</button>
         </div>
         <div id="resultContainer" class="result" style="display:none;">
-            <span id="result"></span>
-            <button class="ecke-button" aria-label="Kopieren" onclick="copy()">In die Zwischenablage</button>
+            <span id="error" class="row-value" style="display:none;"></span>
+            <div class="row" id="rowShare">
+                <span class="row-label">Zum Teilen</span>
+                <span class="row-value" id="result"></span>
+                <button class="ecke-button" aria-label="Kurzlink kopieren" onclick="copy('result')">Kopieren</button>
+            </div>
+            <div class="row" id="rowQr">
+                <span class="row-label">Für QR-Codes (alles groß, kleinerer Code)</span>
+                <span class="row-value" id="resultQr"></span>
+                <button class="ecke-button" aria-label="QR-Schreibweise kopieren" onclick="copy('resultQr')">Kopieren</button>
+            </div>
         </div>
     </div>
     <script>
@@ -150,76 +198,122 @@ const HTML = `<!DOCTYPE html>
             })
             .then(r => r.json())
             .then(data => {
-                document.getElementById('resultContainer').style.display = 'block';
-                document.getElementById('result').textContent = data.error || data.url;
+                const ok = !data.error;
+                document.getElementById('resultContainer').style.display = 'flex';
+                document.getElementById('error').style.display = ok ? 'none' : 'block';
+                document.getElementById('error').textContent = data.error || '';
+                document.getElementById('rowShare').style.display = ok ? 'flex' : 'none';
+                document.getElementById('rowQr').style.display = ok ? 'flex' : 'none';
+                document.getElementById('result').textContent = ok ? data.url : '';
+                document.getElementById('resultQr').textContent = ok ? data.qrUrl : '';
             })
             .catch(err => console.error(err));
         }
 
-        function copy() {
-            navigator.clipboard.writeText(document.getElementById('result').textContent);
+        function copy(id) {
+            navigator.clipboard.writeText(document.getElementById(id).textContent);
         }
     </script>
 </body>
 </html>`;
 
+async function save(request: Request, env: Env, url: URL): Promise<Response> {
+  if (env.AUTH_TOKEN) {
+    const auth = request.headers.get('Authorization');
+    if (auth !== `Bearer ${env.AUTH_TOKEN}`) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+  }
+
+  let body: { url?: string; code?: string };
+  try {
+    body = await request.json() as { url?: string; code?: string };
+  } catch {
+    return jsonResponse({ error: 'Invalid JSON' }, 400);
+  }
+
+  if (!body.url || !isValidURL(body.url)) {
+    return jsonResponse({ error: 'Not a valid URL' }, 400);
+  }
+
+  let code: string;
+  let key: string;
+  if (body.code) {
+    // Wunschcode: Schreibweise bleibt in der Antwort, Schlüssel ist großgeschrieben.
+    if (typeof body.code !== 'string' || !isValidWishCode(body.code)) {
+      return jsonResponse({ error: 'Ungültiger Code' }, 400);
+    }
+    code = body.code;
+    key = code.toUpperCase();
+    // Belegt, wenn der Code in eingegebener oder großer Schreibweise auf ein anderes Ziel zeigt
+    // (alte Codes liegen in ihrer Schreibweise, neue groß).
+    for (const k of new Set([code, key])) {
+      const existing = await env.URLS.get(k);
+      if (existing !== null && existing !== body.url) {
+        return jsonResponse({ error: 'Code belegt' }, 409);
+      }
+    }
+  } else {
+    key = await sha256Short(body.url, CODE_LENGTH);
+    const digitsOnly = /^[0-9]+$/.test(key);
+    const existing = digitsOnly ? null : await env.URLS.get(key);
+    if (digitsOnly || (existing !== null && existing !== body.url)) {
+      key = await freeRandomCode(env);
+    }
+    code = key;
+  }
+
+  await env.URLS.put(key, body.url);
+
+  const base = env.BASE_URL ?? `https://${url.hostname}`;
+  const shortUrl = `${base}/${code}`;
+  return jsonResponse({ url: shortUrl, qrUrl: shortUrl.toUpperCase(), code, error: '' });
+}
+
+async function handle(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const { pathname } = url;
+  const method = request.method;
+  const apexHost = env.BASE_URL ? new URL(env.BASE_URL).hostname : APEX;
+  const onApex = url.hostname === apexHost;
+
+  if (method === 'GET') {
+    // Kurzlink /CODE oder alte Form /~code (~ wird entfernt): erst exakt (alte Codes wie au5H),
+    // dann großgeschrieben (neue Codes liegen groß in URLS), also Groß/Klein egal.
+    const tilde = pathname.startsWith('/~');
+    const code = tilde ? pathname.slice(2) : CODE_PATH.exec(pathname)?.[1];
+    if (code) {
+      const target = await lookup(env, code, code.toUpperCase());
+      if (target !== null) return Response.redirect(target, 301);
+    }
+    if (tilde) return new Response('Not found', { status: 404 });
+  }
+
+  if (onApex) {
+    // Normalerweise beantwortet die Zonenregel „To Visitencard“ / schon vor dem Worker (im Dashboard, unverändert).
+    if (pathname === '/') return redirectHome(301);
+    return redirectHome(302);
+  }
+
+  if (pathname === '/' && method === 'GET') {
+    return new Response(HTML, {
+      headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+    });
+  }
+
+  if (pathname === '/save' && method === 'POST') {
+    return save(request, env, url);
+  }
+
+  return new Response('Not found', { status: 404 });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    const { pathname } = url;
-    const method = request.method;
-
-    if (pathname === '/' && method === 'GET') {
-      return new Response(HTML, {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-      });
+    try {
+      return await handle(request, env);
+    } catch {
+      return redirectHome(302);
     }
-
-    // Redirect: /~au5H → original URL
-    if (pathname.startsWith('/~') && method === 'GET') {
-      const code = pathname.slice(2);
-      if (!code) return new Response('Not found', { status: 404 });
-      const target = await env.URLS.get(code);
-      if (!target) return new Response('Not found', { status: 404 });
-      return Response.redirect(target, 301);
-    }
-
-    // Create short URL
-    if (pathname === '/save' && method === 'POST') {
-      if (env.AUTH_TOKEN) {
-        const auth = request.headers.get('Authorization');
-        if (auth !== `Bearer ${env.AUTH_TOKEN}`) {
-          return jsonResponse({ error: 'Unauthorized' }, 401);
-        }
-      }
-
-      let body: { url?: string; code?: string };
-      try {
-        body = await request.json() as { url?: string; code?: string };
-      } catch {
-        return jsonResponse({ error: 'Invalid JSON' }, 400);
-      }
-
-      if (!body.url || !isValidURL(body.url)) {
-        return jsonResponse({ error: 'Not a valid URL' }, 400);
-      }
-
-      let code = body.code && body.code.length >= 2
-        ? body.code
-        : await sha256Short(body.url, CODE_LENGTH);
-
-      // Collision: same code, different URL → random code
-      const existing = await env.URLS.get(code);
-      if (existing && existing !== body.url) {
-        code = randomCode(CODE_LENGTH);
-      }
-
-      await env.URLS.put(code, body.url);
-
-      const base = env.BASE_URL ?? `https://${url.hostname}`;
-      return jsonResponse({ url: `${base}/~${code}`, code: `~${code}`, error: '' });
-    }
-
-    return new Response('Not found', { status: 404 });
   },
 };

@@ -1,8 +1,9 @@
 # url-shortener
 
-Cloudflare Worker-basierter URL-Shortener. Kurz-URLs haben das Format `https://ecke.lt/~au5H`.
+Cloudflare Worker-basierter URL-Shortener. Kurz-URLs haben das Format `https://ecke.lt/C2D4`, Groß/Klein egal; für QR-Codes ganz groß (`HTTPS://ECKE.LT/C2D4`, kleinerer Code im Alphanumerik-Modus).
 
-- **Kurz-URLs:** `https://ecke.lt/~{code}` (via Cloudflare Route)
+- **Kurz-URLs:** `https://ecke.lt/{CODE}` (via Cloudflare Route `ecke.lt/*`); alte Links `https://ecke.lt/~{code}` gehen weiter
+- **Startseite:** `https://ecke.lt/` leitet die Zonenregel „To Visitencard“ auf `https://nils.ecke.lt` um (vor dem Worker); andere Pfade ohne Code → 302 dorthin
 - **Web-UI & API:** `https://kurz.ecke.lt` (via Cloudflare Custom Domain)
 - **Storage:** Cloudflare KV (kein Server, keine Datenbank)
 - **Deploy:** automatisch via GitHub Actions bei Push auf `master`
@@ -50,7 +51,7 @@ npx wrangler deploy
 ```
 
 Wrangler setzt dabei automatisch:
-- Route `ecke.lt/~*` (Kurz-URLs)
+- Route `ecke.lt/*` (Kurz-URLs, Standard „fail closed“)
 - Custom Domain `kurz.ecke.lt` (Web-UI & API)
 
 Kein manuelles Klicken im Dashboard nötig — alles steht in `wrangler.toml`.
@@ -108,7 +109,7 @@ curl -X POST https://kurz.ecke.lt/save \
 
 Antwort:
 ```json
-{"url": "https://ecke.lt/~c2WD", "code": "~c2WD", "error": ""}
+{"url": "https://ecke.lt/C2D4", "qrUrl": "HTTPS://ECKE.LT/C2D4", "code": "C2D4", "error": ""}
 ```
 
 Optionaler eigener Code:
@@ -116,12 +117,16 @@ Optionaler eigener Code:
 curl -X POST https://kurz.ecke.lt/save \
   -H "Authorization: Bearer mein-token" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "code": "meinkurzercode"}'
+  -d '{"url": "https://example.com", "code": "Hallo"}'
 ```
+
+Wunschcodes: `[A-Za-z0-9]{2,32}` mit mindestens einem Buchstaben, gespeichert großgeschrieben (`HALLO`), Antwort in eingegebener Schreibweise (`https://ecke.lt/Hallo`). Belegt → 409 `Code belegt`, ungültig oder reserviert (`save`) → 400 `Ungültiger Code`.
 
 ### URL aufrufen
 
-`GET https://ecke.lt/~c2WD` → 301 Redirect zur Originalurl
+`GET https://ecke.lt/c2d4` (oder `C2D4`, `~C2D4`) → 301 Redirect zur Originalurl. Nachgeschlagen wird erst exakt (alte Codes wie `au5H`), dann großgeschrieben.
+
+Neue Seiten auf `ecke.lt` nutzen nie einen Pfad aus genau einem Abschnitt nur aus Buchstaben und Ziffern (siehe `docs/adr/2026-10-29-kurzlinks-fuer-qr-codes.md`).
 
 ---
 
@@ -130,6 +135,7 @@ curl -X POST https://kurz.ecke.lt/save \
 ```bash
 cd worker
 npx wrangler dev
+npm test        # Tests (node --test, KV gemockt)
 ```
 
 Für lokale Secrets eine `.dev.vars` Datei anlegen (wird nicht committet):

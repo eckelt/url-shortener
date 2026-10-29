@@ -9,24 +9,23 @@ Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `e
 ## Requirements
 
 ### Requirement: Worker-Deploy bei Änderungen unter worker/
-Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `worker/**` ändert, per GitHub Actions die Abhängigkeiten installieren, einen Typcheck ausführen und mit `wrangler deploy` nach Cloudflare Workers deployen [.github/workflows/deploy.yml:3-31; worker/package.json:5-9].
+Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `worker/**` ändert, per GitHub Actions die Abhängigkeiten installieren, einen Typcheck und die Tests ausführen und erst danach mit `wrangler deploy` nach Cloudflare Workers deployen [.github/workflows/deploy.yml:3-38; worker/package.json:5-10].
 
 #### Scenario: Push mit Worker-Änderung
 - **WHEN** ein Push auf `master` `worker/src/index.ts` ändert
-- **THEN** führt der Workflow `npm ci`, `npm run typecheck` und `npm run deploy` im Ordner `worker` aus und authentifiziert sich mit den GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` [.github/workflows/deploy.yml:21-34]
+- **THEN** führt der Workflow `npm ci`, `npm run typecheck`, `npm test` und `npm run deploy` im Ordner `worker` aus und authentifiziert sich mit den GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` [.github/workflows/deploy.yml:21-38]
 
 #### Scenario: Push ohne Worker-Änderung
 - **WHEN** ein Push nur Dateien außerhalb von `worker/**` ändert (z.B. `openspec/**`, `twin.json`)
 - **THEN** startet kein Worker-Deploy [.github/workflows/deploy.yml:3-7]
 
 ### Requirement: Infrastruktur aus wrangler.toml
-Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/~*`, die Custom Domain `kurz.ecke.lt` und die Static Assets aus `worker/assets` (`[assets]`) aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt [worker/wrangler.toml:1-29; README.md:38-56].
+Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/*`, die Custom Domain `kurz.ecke.lt` und die Static Assets aus `worker/assets` (`[assets]`) aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt.
 
 #### Scenario: Live-Konfiguration
 - **WHEN** die Cloudflare-Konfiguration des Workers `url-shortener` abgefragt wird
-- **THEN** zeigt sie die Route `ecke.lt/~*`, die Custom Domain `kurz.ecke.lt`, das Secret `AUTH_TOKEN` und die Bindings `BASE_URL` und `URLS` [landscape:inventory/raw/cloudflare.yaml:66-76]
+- **THEN** zeigt sie die Route `ecke.lt/*` (nicht mehr `ecke.lt/~*`), die Custom Domain `kurz.ecke.lt`, das Secret `AUTH_TOKEN` und die Bindings `BASE_URL` und `URLS`
 
 #### Scenario: Keine Cloudflare-Git-Integration
 - **WHEN** geprüft wird, ob Cloudflare selbst aus Git baut (Workers Builds)
-- **THEN** ist für `url-shortener` kein Trigger eingerichtet [landscape:inventory/raw/cloudflare.yaml:70; landscape:inventory/raw/cloudflare.yaml:157]
-
+- **THEN** ist für `url-shortener` kein Trigger eingerichtet
