@@ -48,7 +48,7 @@ Das System SHALL einen Wunschcode ab zwei Zeichen übernehmen und sonst die erst
 - **THEN** speichert der Worker unter einem Zufallscode, ohne diesen erneut auf Belegung zu prüfen, und meldet keinen Fehler [worker/src/index.ts:211-220]
 
 ### Requirement: Web-Oberfläche
-Das System SHALL auf `GET /` eine HTML-Seite mit den Feldern URL, Code und Token ausliefern, die per `fetch('/save')` kürzt und das Ergebnis mit Kopier-Knopf anzeigt [worker/src/index.ts:41-164]. Die Seite bindet `https://ecke-design-system.pages.dev/v1/styles.css` (`ecke-design-system:styles@1`) ein und lädt kein Stylesheet von Dritten; Knöpfe nutzen die Button-Komponente des Design-Systems, Labels und Eingabefelder stylt die Seite selbst ausschließlich mit Tokens (`var(--…)`) des Design-Systems [worker/src/index.ts:46-115].
+Das System SHALL auf `GET /` eine HTML-Seite mit den Feldern URL, Code und Token ausliefern, die per `fetch('/save')` kürzt und das Ergebnis mit Kopier-Knopf anzeigt [worker/src/index.ts:41-164]. Die Seite bindet `https://design.ecke.lt/v1/styles.css` (`ecke-design-system:styles@1`) ein und lädt kein Stylesheet von Dritten; Knöpfe nutzen die Button-Komponente des Design-Systems, Labels und Eingabefelder stylt die Seite selbst ausschließlich mit Tokens (`var(--…)`) des Design-Systems [worker/src/index.ts:46-115].
 
 #### Scenario: Aufruf der Oberfläche
 - **WHEN** ein Browser `https://kurz.ecke.lt/` öffnet

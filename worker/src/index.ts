@@ -43,7 +43,7 @@ const HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://ecke-design-system.pages.dev/v1/styles.css">
+    <link rel="stylesheet" href="https://design.ecke.lt/v1/styles.css">
     <title>URL-Shortener</title>
     <style>
         body {

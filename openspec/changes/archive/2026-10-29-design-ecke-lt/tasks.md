@@ -1,0 +1,4 @@
+- [x] 1.1 `worker/src/index.ts:46` auf `https://design.ecke.lt/v1/styles.css`; Worker-Tests laufen lassen
+- [x] 1.2 Spec `link-creation` nachziehen; ADR-Datei nach `docs/adr/`, Folge-Zeile in `2026-09-01-…`; Soll-`twin.json` ins Root
+- [x] 1.3 `validate-schemas` grün; `twin-diff` ohne neue Drift
+- [x] 1.4 Vor Push: `design.ecke.lt/v1/styles.css` live prüfen; nach Deploy kurz.ecke.lt ansehen
