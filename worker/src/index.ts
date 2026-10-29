@@ -277,7 +277,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
   const apexHost = env.BASE_URL ? new URL(env.BASE_URL).hostname : APEX;
   const onApex = url.hostname === apexHost;
 
-  if (method === 'GET') {
+  // HEAD wie GET: Link-Vorschauen in Chats fragen oft nur mit HEAD.
+  if (method === 'GET' || method === 'HEAD') {
     // Kurzlink /CODE oder alte Form /~code (~ wird entfernt): erst exakt (alte Codes wie au5H),
     // dann großgeschrieben (neue Codes liegen groß in URLS), also Groß/Klein egal.
     const tilde = pathname.startsWith('/~');

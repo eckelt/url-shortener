@@ -109,6 +109,11 @@ test('Alter Link /~au5H', async () => {
   assertRedirect(await get(e, 'https://ecke.lt/~au5H'), 301, 'https://example.com/alt');
 });
 
+test('HEAD löst wie GET auf (Link-Vorschau)', async () => {
+  const e = env({ au5H: 'https://example.com/alt' });
+  assertRedirect(await worker.fetch(new Request('https://ecke.lt/~au5H', { method: 'HEAD' }), e), 301, 'https://example.com/alt');
+});
+
 // spec:short-links/weiterleitung-per-kurzcode/neuer-code-mit-tilde
 test('Neuer Code mit Tilde', async () => {
   const e = env({ HALLO: 'https://example.com/hallo' });
