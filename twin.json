@@ -5,10 +5,8 @@
     "name": "url-shortener",
     "summary": "Damit Links in Mails, Folien, Posts und QR-Codes kurz bleiben: ecke.lt/{CODE} leitet auf die Ziel-URL weiter.",
     "repository": "eckelt/url-shortener",
-    "managed": "oneshot",
     "visibility": "public",
     "url": "https://kurz.ecke.lt/",
-    "asOf": "57e6f538a2a9e58696ea6dda2e9c79635f581cff",
     "specs": [
       "short-links",
       "link-creation",
@@ -23,15 +21,11 @@
       "technology": "TypeScript, Cloudflare Workers",
       "summary": "Leitet Kurzlinks weiter und legt über Formular oder API neue Kurzlinks an.",
       "path": "worker/",
-      "deployment": "Cloudflare Workers (Route ecke.lt/* in Zone ecke.lt, Custom Domain kurz.ecke.lt)",
       "url": "https://kurz.ecke.lt/",
       "visibility": "public",
       "specs": [
         "short-links",
         "link-creation"
-      ],
-      "evidence": [
-        "worker/wrangler.toml"
       ],
       "interfaces": [
         {
@@ -39,53 +33,28 @@
           "direction": "provides",
           "contractRef": "url-shortener:short-links@1",
           "protocol": "HTTPS Redirect (301)",
-          "summary": "GET ecke.lt/{code} (Groß/Klein egal, alt /~{code}): 301 auf die Ziel-URL; sonst → nils.ecke.lt",
-          "evidence": [
-            "worker/src/index.ts",
-            "worker/wrangler.toml"
-          ]
+          "summary": "GET ecke.lt/{code} (Groß/Klein egal, alt /~{code}): 301 auf die Ziel-URL; sonst → nils.ecke.lt"
         },
         {
           "id": "shorten-api",
           "direction": "provides",
           "contractRef": "url-shortener:shorten-api@1",
           "protocol": "HTTPS JSON (Bearer-Token)",
-          "summary": "POST kurz.ecke.lt/save {url, code?} → {url, qrUrl, code, error}; nur mit Bearer-Token (Secret AUTH_TOKEN)",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "summary": "POST kurz.ecke.lt/save {url, code?} → {url, qrUrl, code, error}; nur mit Bearer-Token (Secret AUTH_TOKEN)"
         },
         {
           "id": "web-ui",
           "direction": "provides",
           "contractRef": "url-shortener:web-ui@1",
           "protocol": "HTTPS HTML",
-          "summary": "GET kurz.ecke.lt/: Formular mit URL, Code und Token, ruft /save auf; Ergebnis zum Teilen und für QR-Codes",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
-        },
-        {
-          "id": "workers-runtime",
-          "direction": "consumes",
-          "contractRef": "cloudflare-workers:runtime@1",
-          "protocol": "Cloudflare Workers",
-          "relation": "deploys-to",
-          "summary": "Worker url-shortener, Route ecke.lt/*, Custom Domain kurz.ecke.lt",
-          "evidence": [
-            "worker/wrangler.toml"
-          ]
+          "summary": "GET kurz.ecke.lt/: Formular mit URL, Code und Token, ruft /save auf; Ergebnis zum Teilen und für QR-Codes"
         },
         {
           "id": "kv-urls",
           "direction": "consumes",
           "contractRef": "cloudflare-kv:kv@1",
           "protocol": "Workers KV Binding",
-          "summary": "Binding URLS: Kurzcode → Ziel-URL; Weiterleitung liest, /save schreibt (Kollision → Zufallscode)",
-          "evidence": [
-            "worker/wrangler.toml",
-            "worker/src/index.ts"
-          ]
+          "summary": "Binding URLS: Kurzcode → Ziel-URL; Weiterleitung liest, /save schreibt (Kollision → Zufallscode)"
         },
         {
           "id": "design-system-styles",
@@ -93,52 +62,13 @@
           "contractRef": "ecke-design-system:styles@1",
           "protocol": "HTTPS CSS",
           "relation": "imports",
-          "summary": "Bindet /v1/styles.css des Design Systems statt bonsai.css von unpkg ein; Eingabefelder stylt der Worker mit Tokens",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "summary": "Bindet /v1/styles.css des Design Systems statt bonsai.css von unpkg ein; Eingabefelder stylt der Worker mit Tokens"
         }
       ],
       "adrs": [
         "docs/adr/2026-09-01-alle-apps-nutzen-design-system.md",
         "docs/adr/2026-10-19-design-ecke-lt.md",
         "docs/adr/2026-10-29-kurzlinks-fuer-qr-codes.md"
-      ]
-    },
-    {
-      "id": "deploy-worker",
-      "name": "Worker-Deploy-Workflow",
-      "kind": "pipeline",
-      "technology": "GitHub Actions",
-      "summary": "Prüft Typen und Tests und deployt den Worker bei Änderungen unter worker/; KV und Zonenregel bleiben unverändert.",
-      "path": ".github/workflows/deploy.yml",
-      "deployment": "GitHub Actions (ubuntu-latest)",
-      "specs": [
-        "deploy"
-      ],
-      "interfaces": [
-        {
-          "id": "actions",
-          "direction": "consumes",
-          "contractRef": "github-actions:workflows@1",
-          "protocol": "GitHub Actions",
-          "summary": "Runner ubuntu-latest, actions/checkout@v7, actions/setup-node@v7 (Node 22)",
-          "evidence": [
-            ".github/workflows/deploy.yml"
-          ]
-        },
-        {
-          "id": "workers-deploy",
-          "direction": "consumes",
-          "contractRef": "cloudflare-workers:deploy-api@1",
-          "protocol": "Cloudflare API (wrangler deploy)",
-          "relation": "writes",
-          "perspective": "deployment",
-          "summary": "npm run deploy = wrangler deploy; Secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID",
-          "evidence": [
-            ".github/workflows/deploy.yml"
-          ]
-        }
       ]
     }
   ],
@@ -153,19 +83,13 @@
           "from": "actor/besucher",
           "to": "url-shortener/worker",
           "contractRef": "url-shortener:short-links@1",
-          "text": "Öffnet ecke.lt/<CODE> (alt: ecke.lt/~<code>) aus einer Mail, Folie, einem Post oder QR-Code",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "text": "Öffnet ecke.lt/<CODE> (alt: ecke.lt/~<code>) aus einer Mail, Folie, einem Post oder QR-Code"
         },
         {
           "from": "url-shortener/worker",
           "to": "external/cloudflare-kv",
           "contractRef": "cloudflare-kv:kv@1",
-          "text": "Liest die Ziel-URL zum Code, erst exakt, dann großgeschrieben (Binding URLS); gefunden → 301 auf die Ziel-URL, sonst ecke.lt → 302 nils.ecke.lt, /~… → 404",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "text": "Liest die Ziel-URL zum Code, erst exakt, dann großgeschrieben (Binding URLS); gefunden → 301 auf die Ziel-URL, sonst ecke.lt → 302 nils.ecke.lt, /~… → 404"
         }
       ]
     },
@@ -179,28 +103,19 @@
           "from": "actor/nils",
           "to": "url-shortener/worker",
           "contractRef": "url-shortener:web-ui@1",
-          "text": "Öffnet kurz.ecke.lt und trägt Ziel-URL, optional einen Code und das Token ein",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "text": "Öffnet kurz.ecke.lt und trägt Ziel-URL, optional einen Code und das Token ein"
         },
         {
           "from": "actor/nils",
           "to": "url-shortener/worker",
           "contractRef": "url-shortener:shorten-api@1",
-          "text": "Das Formular schickt POST /save {url, code?} mit Bearer-Token; falsches Token → 401",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "text": "Das Formular schickt POST /save {url, code?} mit Bearer-Token; falsches Token → 401"
         },
         {
           "from": "url-shortener/worker",
           "to": "external/cloudflare-kv",
           "contractRef": "cloudflare-kv:kv@1",
-          "text": "Prüft, ob der Code schon belegt ist (Wunschcode → 409, Hash-Code → Zufallscode), und speichert CODE (groß) → Ziel-URL",
-          "evidence": [
-            "worker/src/index.ts"
-          ]
+          "text": "Prüft, ob der Code schon belegt ist (Wunschcode → 409, Hash-Code → Zufallscode), und speichert CODE (groß) → Ziel-URL"
         }
       ]
     }
