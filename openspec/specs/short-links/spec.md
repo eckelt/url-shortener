@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Weiterleitung von Kurzlinks `ecke.lt/{CODE}` (alt `/~{code}`) auf die gespeicherte Ziel-URL durch den Cloudflare Worker `url-shortener`. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+Weiterleitung von Kurzlinks `ecke.lt/{CODE}` (alt `/~{code}`) auf die gespeicherte Ziel-URL durch den Cloudflare Worker `url-shortener`. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27).
 
 ## Requirements
 

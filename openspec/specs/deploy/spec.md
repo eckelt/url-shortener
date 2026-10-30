@@ -2,22 +2,22 @@
 
 ## Purpose
 
-Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `e0f3491e9382018786f7a25fb2ca9dac8b1aef90` (Landscape-Inventur 2026-09-27, Fundstellen geprüft 2026-10-20); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+Automatisierung im Repo: Deploy des Cloudflare Workers. Ist-Zustand zu Commit `e0f3491e9382018786f7a25fb2ca9dac8b1aef90` (Landscape-Inventur 2026-09-27, Fundstellen geprüft 2026-10-20).
 
 **Hinweis (kein Requirement):** Der geerbte Workflow `.github/workflows/docker-publish.yml` läuft weiterhin bei jedem Push auf `master` und bei Tags `v*` (Go-Tests, `docker build`, Push nach `docker.pkg.github.com/<repository>/server`) [.github/workflows/docker-publish.yml:3-17; .github/workflows/docker-publish.yml:22-78]. Er gehört zum Go/Docker-Teil, der Altlast im Repo und nicht in Betrieb ist [Nutzer-Auskunft 2026-09-27]; Entfernung: Landscape-Backlog B12 [landscape:backlog.md:20].
 
 ## Requirements
 
 ### Requirement: Worker-Deploy bei Änderungen unter worker/
-Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `worker/**` ändert, per GitHub Actions die Abhängigkeiten installieren, einen Typcheck und die Tests ausführen und erst danach mit `wrangler deploy` nach Cloudflare Workers deployen [.github/workflows/deploy.yml:3-38; worker/package.json:5-10].
+Das System SHALL bei einem Push auf `main` oder `master`, der Dateien unter `worker/**` ändert, per GitHub Actions die Abhängigkeiten installieren, einen Typcheck und die Tests ausführen und erst danach mit `wrangler deploy` nach Cloudflare Workers deployen.
 
 #### Scenario: Push mit Worker-Änderung
 - **WHEN** ein Push auf `master` `worker/src/index.ts` ändert
-- **THEN** führt der Workflow `npm ci`, `npm run typecheck`, `npm test` und `npm run deploy` im Ordner `worker` aus und authentifiziert sich mit den GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` [.github/workflows/deploy.yml:21-38]
+- **THEN** führt der Workflow `npm ci`, `npm run typecheck`, `npm test` und `npm run deploy` im Ordner `worker` aus und authentifiziert sich mit den GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID`
 
 #### Scenario: Push ohne Worker-Änderung
 - **WHEN** ein Push nur Dateien außerhalb von `worker/**` ändert (z.B. `openspec/**`, `twin.json`)
-- **THEN** startet kein Worker-Deploy [.github/workflows/deploy.yml:3-7]
+- **THEN** startet kein Worker-Deploy
 
 ### Requirement: Infrastruktur aus wrangler.toml
 Das System SHALL beim Deploy Worker-Name, Variable `BASE_URL`, KV-Binding `URLS`, die Route `ecke.lt/*`, die Custom Domain `kurz.ecke.lt` und die Static Assets aus `worker/assets` (`[assets]`) aus `worker/wrangler.toml` setzen; das Secret `AUTH_TOKEN` wird außerhalb des Repos gesetzt.

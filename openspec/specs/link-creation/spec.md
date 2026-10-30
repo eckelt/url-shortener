@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Anlegen von Kurzlinks über die API `POST /save` und die Web-Oberfläche unter `https://kurz.ecke.lt/`. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27); Fundstellen `[datei:zeile]` beziehen sich auf diesen Commit.
+Anlegen von Kurzlinks über die API `POST /save` und die Web-Oberfläche unter `https://kurz.ecke.lt/`. Ist-Zustand zu Commit `65d71f9b03ba7500de9fc79595dcc7c61bb4fd70` (Landscape-Inventur 2026-09-27).
 
 ## Requirements
 
@@ -30,15 +30,15 @@ Das System SHALL auf `POST /save` einen JSON-Body `{url, code?}` annehmen, den E
 - **THEN** bildet der Worker die Kurz-URL aus dem Host der Anfrage
 
 ### Requirement: Token-Schutz
-Das System SHALL `POST /save` nur mit dem Header `Authorization: Bearer <AUTH_TOKEN>` annehmen, sofern das Secret `AUTH_TOKEN` gesetzt ist; live ist es gesetzt [worker/src/index.ts:221-226; landscape:inventory/raw/cloudflare.yaml:71-72].
+Das System SHALL `POST /save` nur mit dem Header `Authorization: Bearer <AUTH_TOKEN>` annehmen, sofern das Secret `AUTH_TOKEN` gesetzt ist; live ist es gesetzt.
 
 #### Scenario: Falsches oder fehlendes Token
 - **WHEN** `AUTH_TOKEN` gesetzt ist und der Header fehlt oder abweicht
-- **THEN** antwortet der Worker mit 401 `{"error": "Unauthorized"}` [worker/src/index.ts:222-225]
+- **THEN** antwortet der Worker mit 401 `{"error": "Unauthorized"}`
 
 #### Scenario: Kein Secret gesetzt
 - **WHEN** `AUTH_TOKEN` nicht gesetzt ist
-- **THEN** nimmt der Worker jede Anfrage ohne Prüfung an [worker/src/index.ts:221]
+- **THEN** nimmt der Worker jede Anfrage ohne Prüfung an
 
 ### Requirement: Code-Vergabe
 Das System SHALL nur Codes aus `0-9A-Z` mit mindestens einem Buchstaben vergeben. Ein Wunschcode muss `[A-Za-z0-9]{2,32}` mit einem Buchstaben sein und darf großgeschrieben nicht auf der Liste reservierter Wörter stehen (mindestens `SAVE`). Ohne Wunschcode gilt der Hash-Code (erste 4 Hex-Zeichen des SHA-256, groß); ist er belegt oder nur Ziffern, ein erneut geprüfter Zufallscode.
